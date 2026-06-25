@@ -7,8 +7,11 @@ Project fonts, per-layer border width, and a proper macOS installer.
 
 - FEATURE: Project font. Choose a font for all on-canvas text
   (screen names, Show Look labels, totals, etc.) in Preferences.
-  Web-safe stack built in, plus the ability to add your own custom
-  font families (any font installed on your machine).
+  The picker lists the fonts actually installed on your computer
+  (Mac or PC) — enumerated by the app, so no fonts need to be
+  bundled and it works in any browser — grouped under a recommended
+  web-safe stack, your installed fonts, and any custom families you
+  add by name.
 - FEATURE: Adjustable panel border width. Each screen layer now has
   a border thickness in pixels (1-20), settable per Border type
   (panel / cabinet / data / power). Travels with duplicate, copy,

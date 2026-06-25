@@ -9835,6 +9835,8 @@ class LEDRasterApp {
         this._prefCustomFonts = Array.isArray(prefs.customFonts) ? prefs.customFonts.slice() : [];
         this._refreshFontPrefsUI(prefs.font || 'Arial');
         this._wireFontPrefsUI();
+        // Pull in the machine's installed fonts; refreshes the picker when ready.
+        this._loadSystemFonts();
         const prefDataPatternButtons = document.querySelectorAll('.pref-data-flow-pattern-btn');
         prefDataPatternButtons.forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-pattern') === (prefs.flowPattern || 'tl-h'));
@@ -9943,15 +9945,39 @@ class LEDRasterApp {
     _allFontOptions() {
         const prefs = this.getPreferences() || {};
         const custom = Array.isArray(prefs.customFonts) ? prefs.customFonts : [];
-        // De-dupe while preserving order, web-safe first then custom.
+        const system = Array.isArray(this._systemFonts) ? this._systemFonts : [];
+        // De-dupe while preserving order: web-safe, then installed, then custom.
         const seen = new Set();
         const out = [];
-        [...this._webSafeFonts(), ...custom].forEach(f => {
+        [...this._webSafeFonts(), ...system, ...custom].forEach(f => {
             const name = (f || '').trim();
             if (!name || seen.has(name.toLowerCase())) return;
             seen.add(name.toLowerCase()); out.push(name);
         });
         return out;
+    }
+
+    // Fetch the list of fonts installed on the machine running the app (once).
+    // The server enumerates them; the browser can render any of them in canvas.
+    _loadSystemFonts() {
+        if (this._systemFontsLoaded) return Promise.resolve(this._systemFonts || []);
+        if (this._systemFontsPromise) return this._systemFontsPromise;
+        this._systemFontsPromise = fetch('/api/system-fonts')
+            .then(r => r.json())
+            .then(d => {
+                this._systemFonts = Array.isArray(d.fonts) ? d.fonts : [];
+                this._systemFontsLoaded = true;
+                // If the Preferences modal is open, refresh the picker so the
+                // installed fonts appear without the user reopening it.
+                const modal = document.getElementById('preferences-modal');
+                if (modal && modal.style.display !== 'none') {
+                    const sel = document.getElementById('pref-font');
+                    this._refreshFontPrefsUI(sel ? sel.value : undefined);
+                }
+                return this._systemFonts;
+            })
+            .catch(() => { this._systemFonts = []; this._systemFontsLoaded = true; return []; });
+        return this._systemFontsPromise;
     }
     // Active canvas-text font. Reads from prefs.font (one project-wide value).
     getProjectFont() {
@@ -9959,34 +9985,61 @@ class LEDRasterApp {
         return prefs.font || 'Arial';
     }
 
-    // Build options for the Preferences font picker — web-safe stack first,
-    // then any custom fonts the user added in this session.
-    _fontOptionsForPicker() {
+    // Grouped options for the Preferences font picker: recommended web-safe
+    // stack, then fonts installed on this machine, then session custom fonts.
+    _fontOptionGroups() {
         const seen = new Set();
-        const out = [];
-        const live = Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts : [];
-        [...this._webSafeFonts(), ...live].forEach(f => {
-            const name = (f || '').trim();
-            if (!name || seen.has(name.toLowerCase())) return;
-            seen.add(name.toLowerCase()); out.push(name);
-        });
-        return out;
+        const dedupe = (arr) => {
+            const out = [];
+            (arr || []).forEach(f => {
+                const name = (f || '').trim();
+                if (!name || seen.has(name.toLowerCase())) return;
+                seen.add(name.toLowerCase()); out.push(name);
+            });
+            return out;
+        };
+        const web = dedupe(this._webSafeFonts());
+        const system = dedupe(Array.isArray(this._systemFonts) ? this._systemFonts : []);
+        const custom = dedupe(Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts : []);
+        return [
+            { label: 'Recommended', fonts: web },
+            { label: 'Installed on this computer', fonts: system },
+            { label: 'Custom', fonts: custom },
+        ].filter(g => g.fonts.length);
+    }
+
+    // Flat list of every selectable font name (used for de-dupe/validation).
+    _fontOptionsForPicker() {
+        return this._fontOptionGroups().reduce((acc, g) => acc.concat(g.fonts), []);
     }
 
     _refreshFontPrefsUI(selectedFont) {
         const sel = document.getElementById('pref-font');
         if (sel) {
             sel.innerHTML = '';
-            const opts = this._fontOptionsForPicker();
-            opts.forEach(name => {
-                const o = document.createElement('option');
-                o.value = name; o.textContent = name;
-                o.style.fontFamily = `"${name}", sans-serif`;
-                sel.appendChild(o);
-            });
-            // Selected value: keep what the caller asked for (or current pref)
+            const groups = this._fontOptionGroups();
+            const opts = [];
             const want = selectedFont || sel.value || 'Arial';
-            if (opts.includes(want)) sel.value = want;
+            // If the saved font isn't in any group yet (e.g. installed fonts
+            // still loading), surface it at the top so the value sticks.
+            if (want && !groups.some(g => g.fonts.some(f => f.toLowerCase() === want.toLowerCase()))) {
+                const o = document.createElement('option');
+                o.value = want; o.textContent = want;
+                o.style.fontFamily = `"${want}", sans-serif`;
+                sel.appendChild(o); opts.push(want);
+            }
+            groups.forEach(g => {
+                const og = document.createElement('optgroup');
+                og.label = g.fonts.length > 30 ? `${g.label} (${g.fonts.length})` : g.label;
+                g.fonts.forEach(name => {
+                    const o = document.createElement('option');
+                    o.value = name; o.textContent = name;
+                    o.style.fontFamily = `"${name}", sans-serif`;
+                    og.appendChild(o); opts.push(name);
+                });
+                sel.appendChild(og);
+            });
+            if (opts.some(o => o.toLowerCase() === want.toLowerCase())) sel.value = want;
         }
         const list = document.getElementById('pref-custom-fonts-list');
         if (list) {
