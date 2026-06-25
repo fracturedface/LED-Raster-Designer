@@ -1,6 +1,21 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.10.0 - June 25, 2026
+----------------------------
+Custom color picker for Windows (macOS-style).
+
+- FEATURE: A replica of the macOS Color picker, shown on Windows in
+  place of the OS color dialog. macOS keeps its own native picker.
+  - Compact swatch popover: vivid row, gray ramp, spectrum matrix.
+  - "Show Colors…" opens the full Colors window with the Sliders tab:
+    Grayscale, RGB (with hex field), CMYK, and HSB slider modes, all
+    live-updating each other and the canvas.
+  - Draggable window, current-color well, screen eyedropper (where the
+    browser supports it), and persistent saved-swatch wells.
+  - The remaining tabs (wheel, palettes, image, pencils) are stubbed
+    and arrive in later updates.
+
 v0.8.9.0 - June 25, 2026
 ----------------------------
 Project fonts, per-layer border width, and a proper macOS installer.

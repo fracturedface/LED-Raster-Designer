@@ -46,6 +46,53 @@
         return toHex(255 * f(0), 255 * f(8), 255 * f(4));
     }
 
+    function hexToRgb(hex) {
+        const n = normalizeHex(hex) || '#000000';
+        return { r: parseInt(n.slice(1, 3), 16), g: parseInt(n.slice(3, 5), 16), b: parseInt(n.slice(5, 7), 16) };
+    }
+    function rgbToHsv(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+        let h = 0;
+        if (d) {
+            if (max === r) h = ((g - b) / d) % 6;
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h *= 60; if (h < 0) h += 360;
+        }
+        return { h, s: (max === 0 ? 0 : d / max) * 100, v: max * 100 };
+    }
+    function hsvToRgb(h, s, v) {
+        s /= 100; v /= 100;
+        h = ((h % 360) + 360) % 360;
+        const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+        let r = 0, g = 0, b = 0;
+        if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+        else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+        else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+        return { r: Math.round((r + m) * 255), g: Math.round((g + m) * 255), b: Math.round((b + m) * 255) };
+    }
+    function rgbToCmyk(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const k = 1 - Math.max(r, g, b);
+        if (k >= 1) return { c: 0, m: 0, y: 0, k: 100 };
+        return {
+            c: (1 - r - k) / (1 - k) * 100,
+            m: (1 - g - k) / (1 - k) * 100,
+            y: (1 - b - k) / (1 - k) * 100,
+            k: k * 100
+        };
+    }
+    function cmykToRgb(c, m, y, k) {
+        c /= 100; m /= 100; y /= 100; k /= 100;
+        return {
+            r: Math.round(255 * (1 - c) * (1 - k)),
+            g: Math.round(255 * (1 - m) * (1 - k)),
+            b: Math.round(255 * (1 - y) * (1 - k))
+        };
+    }
+    function rgbStr(o) { return 'rgb(' + o.r + ',' + o.g + ',' + o.b + ')'; }
+
     // ── Palettes ───────────────────────────────────────────────────────
     // Top vivid row — the saturated "Apple" basics.
     const VIVID = [
@@ -77,6 +124,372 @@
         return cells;
     })();
 
+    // ── Tab icons for the full Colors window ───────────────────────────
+    const TAB_ICONS = {
+        wheel: '<span style="width:20px;height:20px;border-radius:50%;display:block;background:conic-gradient(from -90deg,#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000);box-shadow:0 0 0 0.5px rgba(0,0,0,.5) inset;"></span>',
+        sliders: '<svg viewBox="0 0 22 22" fill="none"><g stroke="#cfcfd2" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="6" x2="19" y2="6"/><line x1="3" y1="11" x2="19" y2="11"/><line x1="3" y1="16" x2="19" y2="16"/></g><g fill="#cfcfd2"><circle cx="14" cy="6" r="2.4"/><circle cx="7" cy="11" r="2.4"/><circle cx="15" cy="16" r="2.4"/></g></svg>',
+        palettes: '<svg viewBox="0 0 22 22"><rect x="3" y="3" width="7" height="7" rx="1" fill="#ff5a5a"/><rect x="12" y="3" width="7" height="7" rx="1" fill="#ffce4a"/><rect x="3" y="12" width="7" height="7" rx="1" fill="#4ab1ff"/><rect x="12" y="12" width="7" height="7" rx="1" fill="#5ad06a"/></svg>',
+        image: '<svg viewBox="0 0 22 22"><rect x="2.5" y="4" width="17" height="14" rx="2" fill="none" stroke="#cfcfd2" stroke-width="1.4"/><circle cx="7.5" cy="9" r="1.7" fill="#ffce4a"/><path d="M4 16l4.5-5 3 3 3-3.5L18 16z" fill="#7fb6ff"/></svg>',
+        pencils: '<svg viewBox="0 0 22 22"><g stroke-width="0"><path d="M5 19l2-9 2 0 2 9z" fill="#ff6b6b"/><path d="M10 19l2-11 2 0 2 11z" fill="#4ab1ff"/><path d="M15 19l1.6-7 1.6 0 1.6 7z" fill="#5ad06a"/></g><g fill="#2c2c2e"><path d="M7 10l1-1.5 1 1.5z"/><path d="M12 8l1-1.5 1 1.5z"/></g></svg>'
+    };
+
+    // ── The full Colors window (Sliders tab) ───────────────────────────
+    const FullPanel = {
+        el: null, target: null,
+        tab: 'sliders', mode: 'rgb',
+        rgb: { r: 0, g: 0, b: 0 },
+        hsv: { h: 0, s: 0, v: 0 },
+        cmyk: { c: 0, m: 0, y: 0, k: 0 },
+        _controls: [],
+        _hexField: null,
+
+        MODES: [
+            { key: 'gray', label: 'Grayscale Slider' },
+            { key: 'rgb', label: 'RGB Sliders' },
+            { key: 'cmyk', label: 'CMYK Sliders' },
+            { key: 'hsb', label: 'HSB Sliders' }
+        ],
+
+        ensureBuilt() {
+            if (this.el) return;
+            const win = document.createElement('div');
+            win.className = 'lrd-cw-window';
+            win.setAttribute('hidden', '');
+
+            // Title bar
+            const bar = document.createElement('div');
+            bar.className = 'lrd-cw-titlebar';
+            const lights = document.createElement('div');
+            lights.className = 'lrd-cw-lights';
+            ['red', 'yellow', 'green'].forEach(c => {
+                const d = document.createElement('span');
+                d.className = 'lrd-cw-light ' + c;
+                if (c === 'red') d.addEventListener('click', () => this.close());
+                lights.appendChild(d);
+            });
+            const title = document.createElement('div');
+            title.className = 'lrd-cw-title'; title.textContent = 'Colors';
+            bar.appendChild(lights); bar.appendChild(title);
+            this._wireDrag(bar, win);
+
+            // Tabs
+            const tabs = document.createElement('div');
+            tabs.className = 'lrd-cw-tabs';
+            this._tabBtns = {};
+            ['wheel', 'sliders', 'palettes', 'image', 'pencils'].forEach(key => {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'lrd-cw-tab' + (key === this.tab ? ' active' : '');
+                b.innerHTML = TAB_ICONS[key];
+                b.title = key.charAt(0).toUpperCase() + key.slice(1);
+                b.addEventListener('click', () => this.selectTab(key));
+                tabs.appendChild(b); this._tabBtns[key] = b;
+            });
+
+            // Body (content swaps per tab)
+            const body = document.createElement('div');
+            body.className = 'lrd-cw-body';
+            this._body = body;
+
+            // Footer: current-color well + eyedropper + saved swatches
+            const footer = document.createElement('div');
+            footer.className = 'lrd-cw-footer';
+            const well = document.createElement('div'); well.className = 'lrd-cw-well';
+            const dropper = document.createElement('button');
+            dropper.type = 'button'; dropper.className = 'lrd-cw-dropper';
+            dropper.title = 'Pick a color from the screen';
+            dropper.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 3.5a2 2 0 0 1 3 3L9 14l-4 1 1-4z"/><path d="M12 5l3 3"/></svg>';
+            if (!window.EyeDropper) dropper.setAttribute('hidden', '');
+            dropper.addEventListener('click', () => this._useEyedropper());
+            const swatches = document.createElement('div'); swatches.className = 'lrd-cw-swatches';
+            footer.appendChild(well); footer.appendChild(dropper); footer.appendChild(swatches);
+            this._well = well; this._swatchesEl = swatches;
+
+            win.appendChild(bar); win.appendChild(tabs); win.appendChild(body); win.appendChild(footer);
+            document.body.appendChild(win);
+            this.el = win;
+            this._buildSwatches();
+
+            // Escape closes; clicks inside don't bubble to the compact-picker closer.
+            win.addEventListener('mousedown', (e) => e.stopPropagation());
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && this.isOpen()) this.close(); });
+        },
+
+        _wireDrag(handle, win) {
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('lrd-cw-light')) return;
+                e.preventDefault();
+                const r = win.getBoundingClientRect();
+                const ox = e.clientX - r.left, oy = e.clientY - r.top;
+                const move = (ev) => {
+                    let left = clamp(ev.clientX - ox, 4, window.innerWidth - r.width - 4);
+                    let top = clamp(ev.clientY - oy, 4, window.innerHeight - 40);
+                    win.style.left = left + 'px'; win.style.top = top + 'px';
+                };
+                const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', up);
+            });
+        },
+
+        open(target, hex) {
+            this.ensureBuilt();
+            this.target = target;
+            const rgb = hexToRgb(hex || (target && target.value) || '#000000');
+            this.rgb = rgb;
+            this.hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+            this.cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+            this.selectTab(this.tab, true);
+            this.el.removeAttribute('hidden');
+            if (!this.el.style.top) {
+                // Default placement: lower-left, like the macOS panel screenshots.
+                this.el.style.left = '24px';
+                this.el.style.top = Math.max(40, window.innerHeight - this.el.offsetHeight - 40) + 'px';
+            }
+            this.updateFooter();
+        },
+
+        selectTab(key, force) {
+            if (!force && this.tab === key) return;
+            this.tab = key;
+            Object.keys(this._tabBtns).forEach(k => this._tabBtns[k].classList.toggle('active', k === key));
+            if (key === 'sliders') this._renderSliders();
+            else this._renderPlaceholder(key);
+        },
+
+        _renderPlaceholder(key) {
+            this._controls = [];
+            const names = { wheel: 'Color Wheel', palettes: 'Color Palettes', image: 'Image Palettes', pencils: 'Pencils' };
+            this._body.innerHTML = '<div class="lrd-cw-placeholder">' + (names[key] || key) +
+                '<br>coming in a later update.</div>';
+        },
+
+        // ── Sliders tab ────────────────────────────────────────────────
+        _renderSliders() {
+            this._body.innerHTML = '';
+            // Mode row
+            const moderow = document.createElement('div');
+            moderow.className = 'lrd-cw-moderow';
+            const sel = document.createElement('select');
+            sel.className = 'lrd-cw-mode';
+            this.MODES.forEach(m => {
+                const o = document.createElement('option'); o.value = m.key; o.textContent = m.label;
+                sel.appendChild(o);
+            });
+            sel.value = this.mode;
+            sel.addEventListener('change', () => { this.mode = sel.value; this._renderSliders(); });
+            const opts = document.createElement('button');
+            opts.type = 'button'; opts.className = 'lrd-cw-opts'; opts.textContent = '⋯';
+            opts.title = 'Options';
+            moderow.appendChild(sel); moderow.appendChild(opts);
+            this._body.appendChild(moderow);
+
+            // Slider list
+            const list = document.createElement('div');
+            this._body.appendChild(list);
+            this._controls = [];
+            this._hexField = null;
+
+            const chans = this._getChannels(this.mode);
+            chans.forEach((ch, idx) => {
+                const wrap = document.createElement('div'); wrap.className = 'lrd-cw-slider';
+                const lab = document.createElement('div'); lab.className = 'lrd-cw-slabel'; lab.textContent = ch.label;
+                const srow = document.createElement('div'); srow.className = 'lrd-cw-srow';
+                const range = document.createElement('input');
+                range.type = 'range'; range.className = 'lrd-cw-range';
+                range.min = ch.min; range.max = ch.max; range.value = ch.val;
+                range.style.background = this._trackGradient(this.mode, idx);
+                const num = document.createElement('input');
+                num.type = 'number'; num.className = 'lrd-cw-num';
+                num.min = ch.min; num.max = ch.max; num.value = ch.val;
+                range.addEventListener('input', () => this._setChannel(this.mode, idx, Number(range.value)));
+                num.addEventListener('input', () => { const v = Number(num.value); if (Number.isFinite(v)) this._setChannel(this.mode, idx, v); });
+                srow.appendChild(range); srow.appendChild(num);
+                wrap.appendChild(lab); wrap.appendChild(srow); list.appendChild(wrap);
+                this._controls.push({ idx, range, number: num });
+            });
+
+            // Mode extras
+            if (this.mode === 'gray') {
+                const grays = document.createElement('div'); grays.className = 'lrd-cw-grays';
+                [0, 25, 50, 75, 100].forEach(p => {
+                    const g = Math.round(p / 100 * 255);
+                    const cell = document.createElement('div'); cell.className = 'lrd-cw-gray';
+                    cell.style.background = rgbStr({ r: g, g: g, b: g });
+                    cell.addEventListener('click', () => this._setChannel('gray', 0, p));
+                    grays.appendChild(cell);
+                });
+                this._body.appendChild(grays);
+            }
+            if (this.mode === 'rgb') {
+                const hexrow = document.createElement('div'); hexrow.className = 'lrd-cw-hexrow';
+                const hl = document.createElement('span'); hl.className = 'lrd-cw-hexlabel'; hl.textContent = 'Hex Color #';
+                const hf = document.createElement('input'); hf.type = 'text'; hf.className = 'lrd-cw-hexfield'; hf.spellcheck = false; hf.maxLength = 7;
+                const applyHex = () => {
+                    const n = normalizeHex(hf.value);
+                    if (n) { const c = hexToRgb(n); this.rgb = c; this._afterRgbChange(); }
+                };
+                hf.addEventListener('keydown', (e) => { if (e.key === 'Enter') { applyHex(); e.preventDefault(); } });
+                hf.addEventListener('blur', applyHex);
+                hexrow.appendChild(hl); hexrow.appendChild(hf);
+                this._body.appendChild(hexrow);
+                this._hexField = hf;
+            }
+            this._syncUI();
+        },
+
+        _getChannels(mode) {
+            if (mode === 'rgb') return [
+                { label: 'Red', min: 0, max: 255, val: this.rgb.r },
+                { label: 'Green', min: 0, max: 255, val: this.rgb.g },
+                { label: 'Blue', min: 0, max: 255, val: this.rgb.b }
+            ];
+            if (mode === 'gray') {
+                const g = Math.round((this.rgb.r + this.rgb.g + this.rgb.b) / 3 / 255 * 100);
+                return [{ label: 'Brightness', min: 0, max: 100, val: g }];
+            }
+            if (mode === 'cmyk') return [
+                { label: 'Cyan', min: 0, max: 100, val: Math.round(this.cmyk.c) },
+                { label: 'Magenta', min: 0, max: 100, val: Math.round(this.cmyk.m) },
+                { label: 'Yellow', min: 0, max: 100, val: Math.round(this.cmyk.y) },
+                { label: 'Black', min: 0, max: 100, val: Math.round(this.cmyk.k) }
+            ];
+            // hsb
+            return [
+                { label: 'Hue', min: 0, max: 360, val: Math.round(this.hsv.h) },
+                { label: 'Saturation', min: 0, max: 100, val: Math.round(this.hsv.s) },
+                { label: 'Brightness', min: 0, max: 100, val: Math.round(this.hsv.v) }
+            ];
+        },
+
+        _setChannel(mode, idx, val) {
+            if (mode === 'rgb') {
+                const k = ['r', 'g', 'b'][idx];
+                this.rgb[k] = clamp(Math.round(val), 0, 255);
+                this._afterRgbChange();
+            } else if (mode === 'gray') {
+                const g = clamp(Math.round(val / 100 * 255), 0, 255);
+                this.rgb = { r: g, g: g, b: g };
+                this._afterRgbChange();
+            } else if (mode === 'cmyk') {
+                const k = ['c', 'm', 'y', 'k'][idx];
+                this.cmyk[k] = clamp(val, 0, 100);
+                this.rgb = cmykToRgb(this.cmyk.c, this.cmyk.m, this.cmyk.y, this.cmyk.k);
+                this._afterRgbChange({ keepCmyk: true });
+            } else { // hsb
+                const k = ['h', 's', 'v'][idx];
+                this.hsv[k] = clamp(val, 0, idx === 0 ? 360 : 100);
+                this.rgb = hsvToRgb(this.hsv.h, this.hsv.s, this.hsv.v);
+                this._afterRgbChange({ keepHsv: true });
+            }
+        },
+
+        _afterRgbChange(opts) {
+            opts = opts || {};
+            if (!opts.keepHsv) {
+                const nh = rgbToHsv(this.rgb.r, this.rgb.g, this.rgb.b);
+                if (nh.s === 0 && this.hsv) nh.h = this.hsv.h;   // preserve hue at gray
+                if (nh.v === 0 && this.hsv) nh.h = this.hsv.h;
+                this.hsv = nh;
+            }
+            if (!opts.keepCmyk) this.cmyk = rgbToCmyk(this.rgb.r, this.rgb.g, this.rgb.b);
+            this._syncUI();
+            this.updateFooter();
+            this.commit();
+        },
+
+        // Push current state into the visible controls without disturbing the
+        // control the user is actively editing.
+        _syncUI() {
+            const chans = this._getChannels(this.mode);
+            this._controls.forEach((c) => {
+                const ch = chans[c.idx];
+                if (document.activeElement !== c.range) c.range.value = ch.val;
+                if (document.activeElement !== c.number) c.number.value = ch.val;
+                c.range.style.background = this._trackGradient(this.mode, c.idx);
+            });
+            if (this._hexField && document.activeElement !== this._hexField) {
+                this._hexField.value = toHex(this.rgb.r, this.rgb.g, this.rgb.b).slice(1);
+            }
+        },
+
+        _trackGradient(mode, idx) {
+            const r = this.rgb.r, g = this.rgb.g, b = this.rgb.b;
+            if (mode === 'rgb') {
+                if (idx === 0) return 'linear-gradient(to right, rgb(0,' + g + ',' + b + '), rgb(255,' + g + ',' + b + '))';
+                if (idx === 1) return 'linear-gradient(to right, rgb(' + r + ',0,' + b + '), rgb(' + r + ',255,' + b + '))';
+                return 'linear-gradient(to right, rgb(' + r + ',' + g + ',0), rgb(' + r + ',' + g + ',255))';
+            }
+            if (mode === 'gray') return 'linear-gradient(to right, #000, #fff)';
+            if (mode === 'cmyk') {
+                const key = ['c', 'm', 'y', 'k'][idx];
+                const a = Object.assign({}, this.cmyk); a[key] = 0;
+                const z = Object.assign({}, this.cmyk); z[key] = 100;
+                return 'linear-gradient(to right, ' + rgbStr(cmykToRgb(a.c, a.m, a.y, a.k)) + ', ' + rgbStr(cmykToRgb(z.c, z.m, z.y, z.k)) + ')';
+            }
+            // hsb
+            if (idx === 0) return 'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)';
+            if (idx === 1) return 'linear-gradient(to right, ' + rgbStr(hsvToRgb(this.hsv.h, 0, this.hsv.v)) + ', ' + rgbStr(hsvToRgb(this.hsv.h, 100, this.hsv.v)) + ')';
+            return 'linear-gradient(to right, #000, ' + rgbStr(hsvToRgb(this.hsv.h, this.hsv.s, 100)) + ')';
+        },
+
+        updateFooter() {
+            if (this._well) this._well.style.background = toHex(this.rgb.r, this.rgb.g, this.rgb.b);
+        },
+
+        commit() {
+            if (!this.target) return;
+            const hex = toHex(this.rgb.r, this.rgb.g, this.rgb.b);
+            this.target.value = hex.toLowerCase();
+            this.target.dispatchEvent(new Event('input', { bubbles: true }));
+            this.target.dispatchEvent(new Event('change', { bubbles: true }));
+        },
+
+        // ── Saved swatches (persisted) ─────────────────────────────────
+        _loadSwatches() {
+            try { return JSON.parse(localStorage.getItem('lrd_cp_swatches') || '[]'); } catch (e) { return []; }
+        },
+        _saveSwatches(arr) {
+            try { localStorage.setItem('lrd_cp_swatches', JSON.stringify(arr.slice(0, 24))); } catch (e) { /* ignore */ }
+        },
+        _buildSwatches() {
+            const saved = this._loadSwatches();
+            this._swatchesEl.innerHTML = '';
+            for (let i = 0; i < 24; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'lrd-cw-swatch';
+                const hex = saved[i];
+                if (hex) { cell.classList.add('filled'); cell.style.background = hex; cell.title = hex; }
+                cell.addEventListener('click', () => {
+                    const cur = this._loadSwatches();
+                    if (cur[i]) {                      // recall
+                        this.rgb = hexToRgb(cur[i]); this._afterRgbChange();
+                    } else {                            // store current
+                        cur[i] = toHex(this.rgb.r, this.rgb.g, this.rgb.b);
+                        this._saveSwatches(cur); this._buildSwatches();
+                    }
+                });
+                cell.addEventListener('contextmenu', (e) => {  // clear
+                    e.preventDefault();
+                    const cur = this._loadSwatches();
+                    if (cur[i]) { cur[i] = null; this._saveSwatches(cur); this._buildSwatches(); }
+                });
+                this._swatchesEl.appendChild(cell);
+            }
+        },
+
+        _useEyedropper() {
+            if (!window.EyeDropper) return;
+            const ed = new window.EyeDropper();
+            ed.open().then(res => {
+                if (res && res.sRGBHex) { this.rgb = hexToRgb(res.sRGBHex); this._afterRgbChange(); }
+            }).catch(() => { /* user cancelled */ });
+        },
+
+        isOpen() { return this.el && !this.el.hasAttribute('hidden'); },
+        close() { if (this.el) this.el.setAttribute('hidden', ''); }
+    };
+    window.LRDColorWindow = FullPanel;
+
     // ── The picker (single shared instance) ────────────────────────────
     const ColorPicker = {
         el: null,
@@ -95,21 +508,6 @@
             divider.className = 'lrd-cp-divider';
             const grid = this._buildGrid();
 
-            // Inline hex entry (revealed by "Show Colors…" for now)
-            const hexRow = document.createElement('div');
-            hexRow.className = 'lrd-cp-hexrow';
-            hexRow.setAttribute('hidden', '');
-            const prev = document.createElement('div');
-            prev.className = 'lrd-cp-hex-preview';
-            const hexInput = document.createElement('input');
-            hexInput.type = 'text';
-            hexInput.className = 'lrd-cp-hex-input';
-            hexInput.spellcheck = false;
-            hexInput.maxLength = 7;
-            hexInput.placeholder = '#RRGGBB';
-            hexRow.appendChild(prev);
-            hexRow.appendChild(hexInput);
-
             const showBtn = document.createElement('button');
             showBtn.type = 'button';
             showBtn.className = 'lrd-cp-show';
@@ -119,40 +517,17 @@
             pop.appendChild(rowGray);
             pop.appendChild(divider);
             pop.appendChild(grid);
-            pop.appendChild(hexRow);
             pop.appendChild(showBtn);
             document.body.appendChild(pop);
 
             this.el = pop;
-            this._hexRow = hexRow;
-            this._hexInput = hexInput;
-            this._hexPreview = prev;
 
-            // Reveal / focus the inline hex field (placeholder for the full window)
+            // "Show Colors…" opens the full Colors window for the same target.
             showBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const hidden = hexRow.hasAttribute('hidden');
-                if (hidden) {
-                    hexRow.removeAttribute('hidden');
-                    hexInput.value = this.target ? (this.target.value || '').toUpperCase() : '';
-                    prev.style.background = hexInput.value || '#000';
-                    hexInput.focus(); hexInput.select();
-                } else {
-                    hexRow.setAttribute('hidden', '');
-                }
-            });
-            hexInput.addEventListener('input', () => {
-                const norm = normalizeHex(hexInput.value);
-                if (norm) prev.style.background = norm;
-            });
-            hexInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const norm = normalizeHex(hexInput.value);
-                    if (norm) { this.commit(norm); this.close(); }
-                    e.preventDefault();
-                } else if (e.key === 'Escape') {
-                    this.close(); e.preventDefault();
-                }
+                const t = this.target;
+                this.close();
+                FullPanel.open(t, t ? t.value : '#000000');
             });
 
             // Clicks inside the popover shouldn't bubble to the outside-close handler.
@@ -216,7 +591,6 @@
         openFor(input) {
             this.ensureBuilt();
             this.target = input;
-            this._hexRow.setAttribute('hidden', '');
             // Highlight the currently-matching swatch, if any.
             const cur = normalizeHex(input.value);
             this.el.querySelectorAll('.lrd-cp-selected').forEach(n => n.classList.remove('lrd-cp-selected'));
@@ -262,7 +636,10 @@
                 if (t && t.matches && t.matches('input[type="color"]')) {
                     e.preventDefault();
                     e.stopPropagation();
-                    this.openFor(t);
+                    // If the full Colors window is already open, just retarget it;
+                    // otherwise show the compact swatch popover.
+                    if (FullPanel.isOpen()) FullPanel.open(t, t.value);
+                    else this.openFor(t);
                 }
             }, true);
             // Close on outside click / Escape / scroll / resize.
