@@ -2761,8 +2761,28 @@ class LEDRasterApp {
             window.canvasRenderer.render();
         });
         
-        // Border width is fixed at 2px - no input needed
-        
+        // v0.8.8.x: per-layer panel border width, in LED pixels. One value
+        // per layer; mirror it across the four tab inputs so editing it on
+        // any tab updates the others.
+        const BORDER_WIDTH_IDS = ['panel-border-width', 'panel-border-width-cabinet',
+            'panel-border-width-data', 'panel-border-width-power'];
+        BORDER_WIDTH_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', () => {
+                let v = Math.round(Number(el.value));
+                if (!Number.isFinite(v) || v < 1) v = 1;
+                if (v > 20) v = 20;
+                BORDER_WIDTH_IDS.forEach(otherId => {
+                    const o = document.getElementById(otherId);
+                    if (o) o.value = v;
+                });
+                this.applyToSelectedLayers(layer => { layer.panel_border_width = v; });
+                window.canvasRenderer.render();
+                this.updateLayers(this.getSelectedLayers());
+            });
+        });
+
         // Sync border visibility checkboxes across tabs
         ['show-panel-borders', 'show-panel-borders-cabinet', 'show-panel-borders-data', 'show-panel-borders-power'].forEach(id => {
             const checkbox = document.getElementById(id);
@@ -5774,6 +5794,8 @@ class LEDRasterApp {
         layer.border_color_cabinet = layer.border_color || prefs.borderColor;
         layer.border_color_data = layer.border_color || prefs.borderColor;
         layer.border_color_power = layer.border_color || prefs.borderColor;
+        // v0.8.8.x: per-layer cabinet border width in LED pixels.
+        if (layer.panel_border_width == null) layer.panel_border_width = 2;
         // v0.8.7.8: multi-color cabinet palette. 'checker' keeps the legacy
         // 2-color checkerboard (color1/color2); palette modes distribute
         // panelColors across cabinets by grid position.
@@ -7855,6 +7877,12 @@ class LEDRasterApp {
         
         // Load border settings (default to TRUE when undefined) - sync across all tabs
         const showBorders = getCommon(l => l.show_panel_borders !== undefined ? l.show_panel_borders : true);
+        // v0.8.8.x: per-layer border width.
+        const borderWidth = getCommon(l => l.panel_border_width != null ? l.panel_border_width : 2);
+        ['panel-border-width', 'panel-border-width-cabinet', 'panel-border-width-data', 'panel-border-width-power'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = borderWidth.mixed ? '' : borderWidth.value;
+        });
         const borderColorPixel = getCommon(l => l.border_color_pixel || l.border_color || '#ffffff');
         const borderColorCabinet = getCommon(l => l.border_color_cabinet || l.border_color || '#ffffff');
         const borderColorData = getCommon(l => l.border_color_data || l.border_color || '#ffffff');
@@ -9587,7 +9615,13 @@ class LEDRasterApp {
             powerVoltage: 110,
             powerAmperage: 15,
             powerWatts: 200,
-            canvasGap: 0
+            canvasGap: 0,
+            // v0.8.8.x: project-wide canvas font + user-added custom fonts.
+            // 'font' applies to every label drawn on the canvas (screen names,
+            // cabinet IDs, info bars, port/circuit labels, etc.). 'customFonts'
+            // is an array of font-family strings the user added.
+            font: 'Arial',
+            customFonts: []
         };
     }
 
@@ -9703,6 +9737,9 @@ class LEDRasterApp {
                 // Only apply to the current project when it is the startup default untitled project.
                 this.applyPreferencesToDefaultLayerIfMatch(false);
                 this.saveClientSideProperties();
+                // v0.8.8.x: font change is project-wide and affects every
+                // on-canvas label — repaint so the new font shows immediately.
+                if (window.canvasRenderer) window.canvasRenderer.render();
                 modal.style.display = 'none';
             });
         }
@@ -9793,6 +9830,11 @@ class LEDRasterApp {
         setVal('pref-color1', prefs.color1);
         setVal('pref-color2', prefs.color2);
         setVal('pref-border-color', prefs.borderColor);
+        // v0.8.8.x: hydrate the Fonts section. Seed the working custom-fonts
+        // buffer from the saved prefs; the editor below mutates it in place.
+        this._prefCustomFonts = Array.isArray(prefs.customFonts) ? prefs.customFonts.slice() : [];
+        this._refreshFontPrefsUI(prefs.font || 'Arial');
+        this._wireFontPrefsUI();
         const prefDataPatternButtons = document.querySelectorAll('.pref-data-flow-pattern-btn');
         prefDataPatternButtons.forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-pattern') === (prefs.flowPattern || 'tl-h'));
@@ -9884,8 +9926,119 @@ class LEDRasterApp {
             powerVoltage: Number.isFinite(voltageVal) && voltageVal > 0 ? voltageVal : defaults.powerVoltage,
             powerAmperage: Number.isFinite(amperageVal) && amperageVal > 0 ? amperageVal : defaults.powerAmperage,
             powerWatts: readNum('pref-power-watts', defaults.powerWatts),
-            canvasGap: readNum('pref-canvas-gap', defaults.canvasGap)
+            canvasGap: readNum('pref-canvas-gap', defaults.canvasGap),
+            font: readStr('pref-font', defaults.font),
+            // customFonts is managed by the editor below; carry the live list.
+            customFonts: Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts.slice() : (defaults.customFonts || []),
         };
+    }
+
+    // v0.8.8.x: web-safe font stack offered in the picker, plus user-added
+    // custom fonts from preferences. Any font name works as a CSS font-family.
+    _webSafeFonts() {
+        return ['Arial', 'Helvetica', 'Verdana', 'Tahoma', 'Trebuchet MS',
+            'Georgia', 'Times New Roman', 'Courier New', 'Impact', 'Monaco',
+            'system-ui'];
+    }
+    _allFontOptions() {
+        const prefs = this.getPreferences() || {};
+        const custom = Array.isArray(prefs.customFonts) ? prefs.customFonts : [];
+        // De-dupe while preserving order, web-safe first then custom.
+        const seen = new Set();
+        const out = [];
+        [...this._webSafeFonts(), ...custom].forEach(f => {
+            const name = (f || '').trim();
+            if (!name || seen.has(name.toLowerCase())) return;
+            seen.add(name.toLowerCase()); out.push(name);
+        });
+        return out;
+    }
+    // Active canvas-text font. Reads from prefs.font (one project-wide value).
+    getProjectFont() {
+        const prefs = this.getPreferences() || {};
+        return prefs.font || 'Arial';
+    }
+
+    // Build options for the Preferences font picker — web-safe stack first,
+    // then any custom fonts the user added in this session.
+    _fontOptionsForPicker() {
+        const seen = new Set();
+        const out = [];
+        const live = Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts : [];
+        [...this._webSafeFonts(), ...live].forEach(f => {
+            const name = (f || '').trim();
+            if (!name || seen.has(name.toLowerCase())) return;
+            seen.add(name.toLowerCase()); out.push(name);
+        });
+        return out;
+    }
+
+    _refreshFontPrefsUI(selectedFont) {
+        const sel = document.getElementById('pref-font');
+        if (sel) {
+            sel.innerHTML = '';
+            const opts = this._fontOptionsForPicker();
+            opts.forEach(name => {
+                const o = document.createElement('option');
+                o.value = name; o.textContent = name;
+                o.style.fontFamily = `"${name}", sans-serif`;
+                sel.appendChild(o);
+            });
+            // Selected value: keep what the caller asked for (or current pref)
+            const want = selectedFont || sel.value || 'Arial';
+            if (opts.includes(want)) sel.value = want;
+        }
+        const list = document.getElementById('pref-custom-fonts-list');
+        if (list) {
+            list.innerHTML = '';
+            const live = Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts : [];
+            if (!live.length) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'font-size:11px; color:#666; font-style:italic;';
+                empty.textContent = 'No custom fonts added.';
+                list.appendChild(empty);
+            } else {
+                live.forEach((name, i) => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex; align-items:center; gap:6px; padding:3px 6px; background:#1a1a1a; border:1px solid #333; border-radius:4px;';
+                    const nm = document.createElement('span');
+                    nm.textContent = name;
+                    nm.style.cssText = `flex:1; font-size:12px; color:#ddd; font-family:"${name}", sans-serif;`;
+                    const x = document.createElement('button');
+                    x.type = 'button'; x.textContent = '×';
+                    x.style.cssText = 'background:transparent; border:none; color:#999; font-size:16px; cursor:pointer; padding:0 4px;';
+                    x.title = 'Remove this custom font';
+                    x.addEventListener('click', () => {
+                        this._prefCustomFonts.splice(i, 1);
+                        this._refreshFontPrefsUI();
+                    });
+                    row.appendChild(nm); row.appendChild(x);
+                    list.appendChild(row);
+                });
+            }
+        }
+    }
+
+    _wireFontPrefsUI() {
+        if (this._fontPrefsWired) return;
+        this._fontPrefsWired = true;
+        const addBtn = document.getElementById('pref-custom-font-add');
+        const input = document.getElementById('pref-custom-font-name');
+        if (addBtn && input) {
+            const add = () => {
+                const name = (input.value || '').trim();
+                if (!name) return;
+                this._prefCustomFonts = this._prefCustomFonts || [];
+                // No duplicates (case-insensitive vs web-safe + existing).
+                const all = this._fontOptionsForPicker().map(f => f.toLowerCase());
+                if (all.includes(name.toLowerCase())) { input.value = ''; return; }
+                this._prefCustomFonts.push(name);
+                input.value = '';
+                this._refreshFontPrefsUI();
+            };
+            addBtn.addEventListener('click', add);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+        }
     }
 
     applyPreferencesToRaster(prefs) {
@@ -13843,6 +13996,7 @@ class LEDRasterApp {
             show_numbers: layer.show_numbers,
             number_size: layer.number_size,
             show_panel_borders: layer.show_panel_borders,
+            panel_border_width: layer.panel_border_width,
             show_circle_with_x: layer.show_circle_with_x,
             border_color: layer.border_color,
             border_width: layer.border_width,
@@ -14149,6 +14303,7 @@ class LEDRasterApp {
             show_numbers: this.clipboard.show_numbers,
             number_size: this.clipboard.number_size,
             show_panel_borders: this.clipboard.show_panel_borders,
+            panel_border_width: this.clipboard.panel_border_width,
             show_circle_with_x: this.clipboard.show_circle_with_x,
             border_color: this.clipboard.border_color,
             cabinetIdStyle: this.clipboard.cabinetIdStyle,

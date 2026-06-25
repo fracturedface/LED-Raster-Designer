@@ -1,6 +1,27 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.9.0 - June 25, 2026
+----------------------------
+Project fonts, per-layer border width, and a proper macOS installer.
+
+- FEATURE: Project font. Choose a font for all on-canvas text
+  (screen names, Show Look labels, totals, etc.) in Preferences.
+  Web-safe stack built in, plus the ability to add your own custom
+  font families (any font installed on your machine).
+- FEATURE: Adjustable panel border width. Each screen layer now has
+  a border thickness in pixels (1-20), settable per Border type
+  (panel / cabinet / data / power). Travels with duplicate, copy,
+  and paste, and persists across save/load.
+- macOS: ships as a .dmg installer with a "drag to Applications"
+  window. Installing to /Applications is what lets macOS show the
+  Local Network permission prompt, which is required for the app to
+  be reachable over your network.
+- macOS: logs now live in ~/Library/Logs/LED Raster Designer/ and
+  presets in ~/Library/Application Support/LED Raster Designer/,
+  instead of next to the app. The download is now just the app.
+  (Windows logs/presets move to %LOCALAPPDATA%\LED Raster Designer.)
+
 v0.8.8.0 - June 17, 2026
 ----------------------------
 Gradients + multi-color cabinet palettes (standard).

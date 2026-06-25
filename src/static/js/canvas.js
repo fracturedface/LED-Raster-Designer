@@ -1,3 +1,11 @@
+// v0.8.8.x: build a canvas-text font shorthand using the project-wide font
+// (preferences.font, defaults to Arial). Use this in place of hardcoded
+// 'Arial' literals so the user's chosen font drives every on-canvas label.
+function projectFontFamily() {
+    return (window.app && typeof window.app.getProjectFont === 'function')
+        ? window.app.getProjectFont() : 'Arial';
+}
+
 class CanvasRenderer {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -3197,16 +3205,17 @@ class CanvasRenderer {
         // v0.8.7.8: gradient overlay on top of the checkerboard, below borders.
         this._applyGradientOverlay(panel, layer);
 
-        // Panel borders - 2 pixels wide per panel, drawn INSIDE the panel
-        // Where two panels meet, you get 2+2 = 4 pixels total
+        // Panel borders — per-layer width in LED pixels, drawn INSIDE the
+        // panel. Where two panels meet, you get 2× the width total.
         if (layer.show_panel_borders) {
+            const bw = Math.max(1, Number(layer.panel_border_width) || 2);
             this.ctx.strokeStyle = this.getLayerBorderColor(layer, 'pixel-map');
-            this.ctx.lineWidth = 2;  // 2 LED pixels wide
-            // Inset by half the line width so the full 2px is inside the panel
-            this.ctx.strokeRect(panel.x + 1, panel.y + 1, panel.width - 2, panel.height - 2);
+            this.ctx.lineWidth = bw;
+            const inset = bw / 2;
+            this.ctx.strokeRect(panel.x + inset, panel.y + inset, panel.width - bw, panel.height - bw);
         }
     }
-    
+
     renderPixelGrid(layer) {
         // Render pixel grid over the ENTIRE layer (on top of everything)
         // This shows the actual LED pixel boundaries (1 world unit = 1 LED pixel)
@@ -3296,13 +3305,15 @@ class CanvasRenderer {
         // v0.8.7.8: gradient overlay on top of the checkerboard, below borders.
         this._applyGradientOverlay(panel, layer);
 
-        // Panel borders - 2 pixels wide per panel, drawn INSIDE the panel
+        // Panel borders — per-layer width, drawn INSIDE the panel.
         if (layer.show_panel_borders) {
+            const bw = Math.max(1, Number(layer.panel_border_width) || 2);
             this.ctx.strokeStyle = this.getLayerBorderColor(layer, 'cabinet-id');
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(panel.x + 1, panel.y + 1, panel.width - 2, panel.height - 2);
+            this.ctx.lineWidth = bw;
+            const inset = bw / 2;
+            this.ctx.strokeRect(panel.x + inset, panel.y + inset, panel.width - bw, panel.height - bw);
         }
-        
+
         // Cabinet ID numbers rendered separately in screen space - see renderCabinetIDNumbers()
     }
     
@@ -3322,11 +3333,13 @@ class CanvasRenderer {
         this.ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
         
-        // Panel borders - 2 pixels wide per panel, drawn INSIDE the panel
+        // Panel borders — per-layer width, drawn INSIDE the panel.
         if (layer.show_panel_borders) {
+            const bw = Math.max(1, Number(layer.panel_border_width) || 2);
             this.ctx.strokeStyle = this.getLayerBorderColor(layer, 'data-flow');
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(panel.x + 1, panel.y + 1, panel.width - 2, panel.height - 2);
+            this.ctx.lineWidth = bw;
+            const inset = bw / 2;
+            this.ctx.strokeRect(panel.x + inset, panel.y + inset, panel.width - bw, panel.height - bw);
         }
         
         // Data flow arrows are rendered as a separate pass in renderDataFlowArrows
@@ -3353,15 +3366,15 @@ class CanvasRenderer {
         this.ctx.fillRect(bounds.x, bounds.y, layerWidth, layerHeight);
         
         // Measure text to size box appropriately
-        this.ctx.font = 'bold 48px Arial';
+        this.ctx.font = `bold 48px ${projectFontFamily()}`;
         const titleText = `CANNOT FIT COMPLETE ${err.unitType.toUpperCase()}`;
         const titleWidth = this.ctx.measureText(titleText).width;
         
-        this.ctx.font = '28px Arial';
+        this.ctx.font = `28px ${projectFontFamily()}`;
         const detailText = `Need ${err.unitCount} panels, port only fits ${err.panelsPerPort}`;
         const detailWidth = this.ctx.measureText(detailText).width;
         
-        this.ctx.font = '24px Arial';
+        this.ctx.font = `24px ${projectFontFamily()}`;
         const infoText = `Port: ${err.portCapacity.toLocaleString()} px | Panel: ${err.panelPixels.toLocaleString()} px`;
         const infoWidth = this.ctx.measureText(infoText).width;
         
@@ -3389,15 +3402,15 @@ class CanvasRenderer {
         
         // Error text
         this.ctx.fillStyle = '#FF4444';
-        this.ctx.font = 'bold 48px Arial';
+        this.ctx.font = `bold 48px ${projectFontFamily()}`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         
         this._fillText(titleText, layerCenterX, layerCenterY - 35);
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '28px Arial';
+        this.ctx.font = `28px ${projectFontFamily()}`;
         this._fillText(detailText, layerCenterX, layerCenterY + 10);
-        this.ctx.font = '24px Arial';
+        this.ctx.font = `24px ${projectFontFamily()}`;
         this.ctx.fillStyle = '#AAAAAA';
         this._fillText(infoText, layerCenterX, layerCenterY + 45);
     }
@@ -3513,7 +3526,7 @@ class CanvasRenderer {
             // label would overflow the screen edge, shift the CENTER
             // inward so it stays fully inside the screen.
             const sizeLabel = (label) => {
-                this.ctx.font = `bold ${labelSize}px Arial`;
+                this.ctx.font = `bold ${labelSize}px ${projectFontFamily()}`;
                 const textWidth = this.ctx.measureText(label).width;
                 const padding = Math.max(4, labelSize * 0.2);
                 const radius = Math.max(labelSize * 1.2, textWidth / 2 + padding);
@@ -3550,7 +3563,7 @@ class CanvasRenderer {
                 this.ctx.arc(rx, ry, returnFit.radius, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.fillStyle = backupTextColor;
-                this.ctx.font = `bold ${returnFit.size}px Arial`;
+                this.ctx.font = `bold ${returnFit.size}px ${projectFontFamily()}`;
                 this.ctx.textAlign = 'center';
                 this.ctx.textBaseline = 'middle';
                 this._fillText(returnLabel, rx, ry);
@@ -3562,7 +3575,7 @@ class CanvasRenderer {
             this.ctx.fill();
 
             this.ctx.fillStyle = primaryTextColor;
-            this.ctx.font = `bold ${primaryFit.size}px Arial`;
+            this.ctx.font = `bold ${primaryFit.size}px ${projectFontFamily()}`;
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this._fillText(primaryLabel, px, py);
@@ -3574,7 +3587,7 @@ class CanvasRenderer {
                 this.ctx.fill();
 
                 this.ctx.fillStyle = backupTextColor;
-                this.ctx.font = `bold ${returnFit.size}px Arial`;
+                this.ctx.font = `bold ${returnFit.size}px ${projectFontFamily()}`;
                 this._fillText(returnLabel, rx, ry);
             }
         };
@@ -3746,7 +3759,7 @@ class CanvasRenderer {
             // CENTER inward so the label stays fully inside the screen
             // bounds. Long labels overflow into neighboring panels but
             // never beyond the screen.
-            this.ctx.font = `bold ${labelSize}px Arial`;
+            this.ctx.font = `bold ${labelSize}px ${projectFontFamily()}`;
             const textWidth = this.ctx.measureText(label).width;
             const padding = Math.max(6, labelSize * 0.25);
             const circleRadius = Math.max(labelSize * 0.7, lineWidth * 1.4, textWidth / 2 + padding);
@@ -3894,7 +3907,7 @@ class CanvasRenderer {
         this.ctx.fillRect(bounds.x, bounds.y, layerWidth, layerHeight);
 
         const titleText = err.message || 'POWER ERROR';
-        this.ctx.font = 'bold 42px Arial';
+        this.ctx.font = `bold 42px ${projectFontFamily()}`;
         const titleWidth = this.ctx.measureText(titleText).width;
         const textBoxWidth = titleWidth + 40;
         const textBoxHeight = 90;
@@ -3916,7 +3929,7 @@ class CanvasRenderer {
         );
 
         this.ctx.fillStyle = '#FF4444';
-        this.ctx.font = 'bold 42px Arial';
+        this.ctx.font = `bold 42px ${projectFontFamily()}`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this._fillText(titleText, layerCenterX, layerCenterY);
@@ -4122,9 +4135,11 @@ class CanvasRenderer {
         this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
 
         if (layer.show_panel_borders) {
+            const bw = Math.max(1, Number(layer.panel_border_width) || 2);
             this.ctx.strokeStyle = this.getLayerBorderColor(layer, 'power');
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(panel.x + 1, panel.y + 1, panel.width - 2, panel.height - 2);
+            this.ctx.lineWidth = bw;
+            const inset = bw / 2;
+            this.ctx.strokeRect(panel.x + inset, panel.y + inset, panel.width - bw, panel.height - bw);
         }
     }
     
@@ -4141,7 +4156,7 @@ class CanvasRenderer {
         const cabinetIdColor = layer.cabinetIdColor || '#ffffff';
         
         this.ctx.fillStyle = cabinetIdColor;
-        this.ctx.font = `bold ${numberSize}px Arial`;
+        this.ctx.font = `bold ${numberSize}px ${projectFontFamily()}`;
         
         // Position-based settings
         if (cabinetIdPosition === 'center') {
@@ -4457,7 +4472,7 @@ class CanvasRenderer {
 
         const screenNameLineHeight = screenNameSize + 4;
         
-        this.ctx.font = `bold ${fontSize}px Arial`;
+        this.ctx.font = `bold ${fontSize}px ${projectFontFamily()}`;
         
         // Calculate total height of ALL center labels (screen name + other labels)
         let totalCenterHeight = 0;
@@ -4492,7 +4507,7 @@ class CanvasRenderer {
         if (screenName) {
             // Set the name font up-front so we can measure the label box and
             // clamp it fully inside the layer before drawing.
-            this.ctx.font = `bold ${screenNameSize}px Arial`;
+            this.ctx.font = `bold ${screenNameSize}px ${projectFontFamily()}`;
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
 
@@ -4571,7 +4586,7 @@ class CanvasRenderer {
             this.ctx.restore();
             
             // Reset font for other labels
-            this.ctx.font = `bold ${fontSize}px Arial`;
+            this.ctx.font = `bold ${fontSize}px ${projectFontFamily()}`;
             if (this.viewMode === 'pixel-map') {
                 currentY += screenNameHeight;
                 if (centerLines.length > 0) {
@@ -4678,7 +4693,7 @@ class CanvasRenderer {
         // Render Info label at bottom with background (fixed 14px screen size)
         if (infoLines.length > 0) {
             // Use world coordinates directly (transform is already applied)
-            this.ctx.font = `${infoFontSize}px Arial`;
+            this.ctx.font = `${infoFontSize}px ${projectFontFamily()}`;
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'bottom';
             
@@ -4759,7 +4774,7 @@ class CanvasRenderer {
         const fontSize = layer.labelsFontSize || 30;
         const padding = 4;
         
-        this.ctx.font = `${fontSize}px Arial`;
+        this.ctx.font = `${fontSize}px ${projectFontFamily()}`;
         
         corners.forEach(corner => {
             if (!corner.show) return;
@@ -5096,13 +5111,13 @@ class CanvasRenderer {
         const pillPadY = 6;
 
         // Measure label
-        this.ctx.font = `bold ${fontSize}px Arial`;
+        this.ctx.font = `bold ${fontSize}px ${projectFontFamily()}`;
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'top';
         const labelW = this.ctx.measureText(label).width;
 
         // Measure pills
-        this.ctx.font = `bold ${countFontSize}px Arial`;
+        this.ctx.font = `bold ${countFontSize}px ${projectFontFamily()}`;
         const committedText = `${committed} on port`;
         const committedW = this.ctx.measureText(committedText).width;
         const committedPillW = committedW + pillPadX * 2;
@@ -5123,7 +5138,7 @@ class CanvasRenderer {
         this.ctx.fillRect(x, y, boxW, boxH);
 
         // Label (big)
-        this.ctx.font = `bold ${fontSize}px Arial`;
+        this.ctx.font = `bold ${fontSize}px ${projectFontFamily()}`;
         this.ctx.fillStyle = labelColor;
         this.ctx.fillText(label, x + padding, y + padding);
 
@@ -5133,7 +5148,7 @@ class CanvasRenderer {
         this.ctx.fillStyle = committed > 0 ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.08)';
         this._roundRect(pillX, pillY, committedPillW, pillH, 8);
         this.ctx.fill();
-        this.ctx.font = `bold ${countFontSize}px Arial`;
+        this.ctx.font = `bold ${countFontSize}px ${projectFontFamily()}`;
         this.ctx.fillStyle = committed > 0 ? '#ffffff' : 'rgba(255, 255, 255, 0.7)';
         this.ctx.fillText(committedText, pillX + pillPadX, pillY + pillPadY - 2);
 

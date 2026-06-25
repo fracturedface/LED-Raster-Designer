@@ -31,23 +31,49 @@ app = Flask(__name__,
             static_folder=os.path.join(BASE_DIR, 'static'))
 app.config['SECRET_KEY'] = 'led-raster-designer-secret'
 socketio = SocketIO(app, cors_allowed_origins="*")
-# Logs go next to the executable (or script), not inside the bundle
-if getattr(sys, 'frozen', False):
-    _APP_DIR = os.path.dirname(sys.executable)
-    # macOS .app bundle: exe is inside Foo.app/Contents/MacOS/
-    # Put logs next to the .app, not buried inside it
-    if '.app/Contents/MacOS' in _APP_DIR:
-        _APP_DIR = os.path.dirname(os.path.dirname(os.path.dirname(_APP_DIR)))
-else:
-    _APP_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_DIR_PATH = os.path.join(_APP_DIR, 'logs')
+APP_NAME = 'LED Raster Designer'
+
+
+def _user_data_paths():
+    """Return (log_dir, presets_dir).
+
+    For a FROZEN build we write to the OS-standard per-user locations so the
+    .app bundle stays read-only / notarizable and can simply be dropped into
+    /Applications (it never writes next to itself, which previously forced a
+    containing folder and broke writing from /Applications). Running from
+    source keeps logs/presets next to the script for easy dev access.
+    """
+    frozen = getattr(sys, 'frozen', False)
+    home = os.path.expanduser('~')
+    if frozen and sys.platform == 'darwin':
+        # macOS standard: ~/Library/Logs/<App> and ~/Library/Application Support/<App>
+        log_dir = os.path.join(home, 'Library', 'Logs', APP_NAME)
+        presets_dir = os.path.join(home, 'Library', 'Application Support', APP_NAME, 'presets')
+    elif frozen and sys.platform == 'win32':
+        base = os.environ.get('LOCALAPPDATA') or os.path.join(home, 'AppData', 'Local')
+        log_dir = os.path.join(base, APP_NAME, 'logs')
+        presets_dir = os.path.join(base, APP_NAME, 'presets')
+    elif frozen:
+        # Linux frozen: XDG state/data dirs
+        state = os.environ.get('XDG_STATE_HOME') or os.path.join(home, '.local', 'state')
+        data = os.environ.get('XDG_DATA_HOME') or os.path.join(home, '.local', 'share')
+        log_dir = os.path.join(state, APP_NAME, 'logs')
+        presets_dir = os.path.join(data, APP_NAME, 'presets')
+    else:
+        d = os.path.dirname(os.path.abspath(__file__))
+        log_dir = os.path.join(d, 'logs')
+        presets_dir = os.path.join(d, 'presets')
+    return log_dir, presets_dir
+
+
+LOG_DIR_PATH, PRESETS_DIR_PATH = _user_data_paths()
 LOG_FILE_PATH = os.path.join(LOG_DIR_PATH, 'led_raster_designer.log')
 LOG_MAX_BYTES = 20 * 1024 * 1024
 LOG_BACKUPS = 2
+os.makedirs(LOG_DIR_PATH, exist_ok=True)
 os.environ['_LRD_LOG_DIR'] = LOG_DIR_PATH
 print(f'[LED Raster Designer] Log directory: {LOG_DIR_PATH}')
 
-PRESETS_DIR_PATH = os.path.join(_APP_DIR, 'presets')
 os.makedirs(PRESETS_DIR_PATH, exist_ok=True)
 print(f'[LED Raster Designer] Presets directory: {PRESETS_DIR_PATH}')
 
@@ -626,6 +652,7 @@ def create_layer(name, columns, rows, cabinet_width, cabinet_height, offset_x=0,
         'show_numbers': True,
         'number_size': 30,
         'show_panel_borders': True,  # Default ON
+        'panel_border_width': 2,     # LED pixels
         'border_color': '#ffffff',
         'border_color_pixel': '#ffffff',
         'border_color_cabinet': '#ffffff',
@@ -1271,7 +1298,7 @@ def add_layer():
         'color1', 'color2', 'panel_width_mm', 'panel_height_mm', 'panel_weight',
         'weight_unit', 'infoLabelSize',
         'halfFirstColumn', 'halfLastColumn', 'halfFirstRow', 'halfLastRow',
-        'show_numbers', 'number_size', 'show_panel_borders', 'show_circle_with_x', 
+        'show_numbers', 'number_size', 'show_panel_borders', 'panel_border_width', 'show_circle_with_x',
         'border_color', 'border_color_pixel', 'border_color_cabinet', 'border_color_data', 'border_color_power',
         'cabinetIdStyle', 'cabinetIdPosition', 'cabinetIdColor',
         'dataFlowPattern', 'arrowLineWidth', 'arrowSize', 'arrowColor', 'primaryColor', 'primaryTextColor', 'backupColor', 'backupTextColor',
@@ -1412,7 +1439,7 @@ def update_layer(layer_id):
                 'offset_x', 'offset_y', 'rotation', 'color1', 'color2',
                 'panel_width_mm', 'panel_height_mm', 'panel_weight', 'weight_unit', 'visible',
                 'halfFirstColumn', 'halfLastColumn', 'halfFirstRow', 'halfLastRow',
-                'show_numbers', 'number_size', 'show_panel_borders', 'show_circle_with_x', 'border_color',
+                'show_numbers', 'number_size', 'show_panel_borders', 'panel_border_width', 'show_circle_with_x', 'border_color',
                 'border_color_pixel', 'border_color_cabinet', 'border_color_data', 'border_color_power',
                 'cabinetIdStyle', 'cabinetIdPosition', 'cabinetIdColor',
                 'dataFlowPattern', 'arrowLineWidth', 'arrowSize', 'arrowColor', 'primaryColor', 'primaryTextColor', 'backupColor', 'backupTextColor',
