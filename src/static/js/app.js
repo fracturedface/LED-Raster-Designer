@@ -9616,12 +9616,11 @@ class LEDRasterApp {
             powerAmperage: 15,
             powerWatts: 200,
             canvasGap: 0,
-            // v0.8.8.x: project-wide canvas font + user-added custom fonts.
-            // 'font' applies to every label drawn on the canvas (screen names,
-            // cabinet IDs, info bars, port/circuit labels, etc.). 'customFonts'
-            // is an array of font-family strings the user added.
-            font: 'Arial',
-            customFonts: []
+            // Project-wide canvas font. Applies to every label drawn on the
+            // canvas (screen names, cabinet IDs, info bars, port/circuit
+            // labels, etc.). The picker is populated from the fonts installed
+            // on the machine running the app.
+            font: 'Arial'
         };
     }
 
@@ -9830,12 +9829,9 @@ class LEDRasterApp {
         setVal('pref-color1', prefs.color1);
         setVal('pref-color2', prefs.color2);
         setVal('pref-border-color', prefs.borderColor);
-        // v0.8.8.x: hydrate the Fonts section. Seed the working custom-fonts
-        // buffer from the saved prefs; the editor below mutates it in place.
-        this._prefCustomFonts = Array.isArray(prefs.customFonts) ? prefs.customFonts.slice() : [];
+        // Hydrate the Fonts picker, then pull in the machine's installed fonts
+        // (refreshes the picker again when they arrive).
         this._refreshFontPrefsUI(prefs.font || 'Arial');
-        this._wireFontPrefsUI();
-        // Pull in the machine's installed fonts; refreshes the picker when ready.
         this._loadSystemFonts();
         const prefDataPatternButtons = document.querySelectorAll('.pref-data-flow-pattern-btn');
         prefDataPatternButtons.forEach(btn => {
@@ -9930,8 +9926,6 @@ class LEDRasterApp {
             powerWatts: readNum('pref-power-watts', defaults.powerWatts),
             canvasGap: readNum('pref-canvas-gap', defaults.canvasGap),
             font: readStr('pref-font', defaults.font),
-            // customFonts is managed by the editor below; carry the live list.
-            customFonts: Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts.slice() : (defaults.customFonts || []),
         };
     }
 
@@ -9943,13 +9937,11 @@ class LEDRasterApp {
             'system-ui'];
     }
     _allFontOptions() {
-        const prefs = this.getPreferences() || {};
-        const custom = Array.isArray(prefs.customFonts) ? prefs.customFonts : [];
         const system = Array.isArray(this._systemFonts) ? this._systemFonts : [];
-        // De-dupe while preserving order: web-safe, then installed, then custom.
+        // De-dupe while preserving order: web-safe quick-picks, then installed.
         const seen = new Set();
         const out = [];
-        [...this._webSafeFonts(), ...system, ...custom].forEach(f => {
+        [...this._webSafeFonts(), ...system].forEach(f => {
             const name = (f || '').trim();
             if (!name || seen.has(name.toLowerCase())) return;
             seen.add(name.toLowerCase()); out.push(name);
@@ -9985,8 +9977,8 @@ class LEDRasterApp {
         return prefs.font || 'Arial';
     }
 
-    // Grouped options for the Preferences font picker: recommended web-safe
-    // stack, then fonts installed on this machine, then session custom fonts.
+    // Grouped options for the Preferences font picker: a few recommended
+    // quick-picks, then every font installed on this machine.
     _fontOptionGroups() {
         const seen = new Set();
         const dedupe = (arr) => {
@@ -10000,11 +9992,9 @@ class LEDRasterApp {
         };
         const web = dedupe(this._webSafeFonts());
         const system = dedupe(Array.isArray(this._systemFonts) ? this._systemFonts : []);
-        const custom = dedupe(Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts : []);
         return [
             { label: 'Recommended', fonts: web },
             { label: 'Installed on this computer', fonts: system },
-            { label: 'Custom', fonts: custom },
         ].filter(g => g.fonts.length);
     }
 
@@ -10040,57 +10030,6 @@ class LEDRasterApp {
                 sel.appendChild(og);
             });
             if (opts.some(o => o.toLowerCase() === want.toLowerCase())) sel.value = want;
-        }
-        const list = document.getElementById('pref-custom-fonts-list');
-        if (list) {
-            list.innerHTML = '';
-            const live = Array.isArray(this._prefCustomFonts) ? this._prefCustomFonts : [];
-            if (!live.length) {
-                const empty = document.createElement('div');
-                empty.style.cssText = 'font-size:11px; color:#666; font-style:italic;';
-                empty.textContent = 'No custom fonts added.';
-                list.appendChild(empty);
-            } else {
-                live.forEach((name, i) => {
-                    const row = document.createElement('div');
-                    row.style.cssText = 'display:flex; align-items:center; gap:6px; padding:3px 6px; background:#1a1a1a; border:1px solid #333; border-radius:4px;';
-                    const nm = document.createElement('span');
-                    nm.textContent = name;
-                    nm.style.cssText = `flex:1; font-size:12px; color:#ddd; font-family:"${name}", sans-serif;`;
-                    const x = document.createElement('button');
-                    x.type = 'button'; x.textContent = '×';
-                    x.style.cssText = 'background:transparent; border:none; color:#999; font-size:16px; cursor:pointer; padding:0 4px;';
-                    x.title = 'Remove this custom font';
-                    x.addEventListener('click', () => {
-                        this._prefCustomFonts.splice(i, 1);
-                        this._refreshFontPrefsUI();
-                    });
-                    row.appendChild(nm); row.appendChild(x);
-                    list.appendChild(row);
-                });
-            }
-        }
-    }
-
-    _wireFontPrefsUI() {
-        if (this._fontPrefsWired) return;
-        this._fontPrefsWired = true;
-        const addBtn = document.getElementById('pref-custom-font-add');
-        const input = document.getElementById('pref-custom-font-name');
-        if (addBtn && input) {
-            const add = () => {
-                const name = (input.value || '').trim();
-                if (!name) return;
-                this._prefCustomFonts = this._prefCustomFonts || [];
-                // No duplicates (case-insensitive vs web-safe + existing).
-                const all = this._fontOptionsForPicker().map(f => f.toLowerCase());
-                if (all.includes(name.toLowerCase())) { input.value = ''; return; }
-                this._prefCustomFonts.push(name);
-                input.value = '';
-                this._refreshFontPrefsUI();
-            };
-            addBtn.addEventListener('click', add);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
         }
     }
 
