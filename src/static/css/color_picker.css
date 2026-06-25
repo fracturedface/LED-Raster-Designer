@@ -1,0 +1,141 @@
+/* ──────────────────────────────────────────────────────────────────────
+   LRD custom color picker — a faithful replica of the macOS Color popover.
+   Shown on Windows (where the native picker differs); macOS keeps its own.
+   Phase 1: the compact swatch popover + "Show Colors…".
+   ────────────────────────────────────────────────────────────────────── */
+
+.lrd-cp-popover {
+    position: fixed;
+    z-index: 100000;
+    box-sizing: border-box;
+    width: 234px;
+    padding: 10px 12px 12px;
+    background: #2b2b2e;
+    border: 1px solid #000;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55),
+                0 0 0 0.5px rgba(255, 255, 255, 0.08) inset;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.lrd-cp-popover[hidden] { display: none; }
+
+/* Rows of fixed swatches (vivid colors, then grays) */
+.lrd-cp-row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 3px;
+    margin-bottom: 5px;
+}
+
+.lrd-cp-cell {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 2px;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.5) inset,
+                0 0 0 0.5px rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+}
+
+.lrd-cp-cell:hover {
+    box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.lrd-cp-cell.lrd-cp-selected {
+    box-shadow: 0 0 0 2px #2b2b2e, 0 0 0 3.5px #2f80ff;
+    z-index: 2;
+}
+
+/* The "no color" diagonal slash on the first grey-row cell */
+.lrd-cp-cell.lrd-cp-none {
+    background: #fff;
+}
+.lrd-cp-cell.lrd-cp-none::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top right,
+        transparent calc(50% - 0.7px), #e0322a calc(50% - 0.7px),
+        #e0322a calc(50% + 0.7px), transparent calc(50% + 0.7px));
+}
+
+/* Thin divider between the gray row and the big spectrum grid */
+.lrd-cp-divider {
+    height: 1px;
+    margin: 2px 0 7px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* The large spectrum matrix */
+.lrd-cp-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.5);
+}
+
+.lrd-cp-grid .lrd-cp-gcell {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+}
+.lrd-cp-grid .lrd-cp-gcell:hover {
+    box-shadow: 0 0 0 1.5px #fff inset, 0 0 0 2.5px rgba(0, 0, 0, 0.5) inset;
+    position: relative;
+    z-index: 1;
+}
+
+/* "Show Colors…" button — matches the rounded macOS push button */
+.lrd-cp-show {
+    display: block;
+    width: 100%;
+    padding: 5px 0 6px;
+    background: linear-gradient(#5a5a5e, #4a4a4e);
+    color: #fff;
+    font-size: 13px;
+    border: 0.5px solid #1c1c1e;
+    border-radius: 7px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset,
+                0 1px 2px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+}
+.lrd-cp-show:hover { background: linear-gradient(#646468, #545458); }
+.lrd-cp-show:active { background: linear-gradient(#454549, #3c3c40); }
+
+/* Inline hex-entry fallback revealed by "Show Colors…" until the full
+   tabbed Colors window lands. */
+.lrd-cp-hexrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.lrd-cp-hexrow[hidden] { display: none; }
+.lrd-cp-hex-preview {
+    width: 34px;
+    height: 24px;
+    border-radius: 4px;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    flex: 0 0 auto;
+}
+.lrd-cp-hex-input {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 4px 7px;
+    background: #1c1c1e;
+    color: #fff;
+    border: 0.5px solid #000;
+    border-radius: 5px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+.lrd-cp-hex-input:focus { outline: 1.5px solid #2f80ff; outline-offset: -0.5px; }

@@ -833,7 +833,9 @@ def index():
     # Initialize default layer if project is empty
     initialize_default_layer()
     log_event('page_load', {'path': '/'})
-    response = make_response(render_template('index.html'))
+    # Expose the host OS so the client can show the custom (Apple-style) color
+    # picker on Windows while leaving the native picker in place on macOS.
+    response = make_response(render_template('index.html', server_platform=sys.platform))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
