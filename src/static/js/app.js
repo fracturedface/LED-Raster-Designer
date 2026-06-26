@@ -169,48 +169,26 @@ function setupColorPickerWithHex(pickerId, hexId, onChangeCallback) {
 
     if (!picker || !hex) return;
 
+    // The visible control is always the native <input type="color">, on every
+    // platform. On Windows, color_picker.js intercepts clicks on it and shows
+    // the custom macOS-style picker; on macOS the OS picker opens. This is the
+    // single color-picker path — there is no separate swatch/popover anymore.
     const setColor = (val, isFinal = false) => {
         const normalized = normalizeHex(val);
         if (!normalized) return;
         picker.value = normalized;
         hex.value = normalized.toUpperCase();
-        if (swatch) swatch.style.background = normalized;
         if (onChangeCallback) onChangeCallback(normalized, isFinal);
-        pushRecentColor(normalized);
     };
 
-    if (isMacOS()) {
-        picker.type = 'color';
-        picker.style.display = 'inline-block';
-        picker.classList.add('native-color-input');
-        if (swatch) {
-            swatch.classList.add('color-swatch-hidden');
-            swatch.style.display = 'none';
-            swatch.setAttribute('hidden', 'true');
-        }
-        picker.addEventListener('input', (e) => setColor(e.target.value, false));
-        picker.addEventListener('change', (e) => setColor(e.target.value, true));
-        hex.addEventListener('change', () => setColor(hex.value, true));
-        setColor(picker.value || hex.value || '#ffffff', true);
-        return;
-    }
-
-    picker.style.display = 'none';
-    if (swatch) {
-        swatch.classList.remove('color-swatch-hidden');
-        swatch.removeAttribute('hidden');
-        swatch.style.display = 'inline-block';
-        swatch.addEventListener('click', (e) => {
-            e.preventDefault();
-            openColorPopover(swatch, (color) => setColor(color, true), () => openColorModal(setColor));
-        });
-    }
-
-    hex.addEventListener('change', () => {
-        setColor(hex.value, true);
-    });
-
-    // Initialize swatch
+    picker.type = 'color';
+    picker.style.display = 'inline-block';
+    picker.classList.add('native-color-input');
+    // Hide the legacy swatch element if the template still has one.
+    if (swatch) { swatch.style.display = 'none'; swatch.setAttribute('hidden', 'true'); }
+    picker.addEventListener('input', (e) => setColor(e.target.value, false));
+    picker.addEventListener('change', (e) => setColor(e.target.value, true));
+    hex.addEventListener('change', () => setColor(hex.value, true));
     setColor(picker.value || hex.value || '#ffffff', true);
 }
 
