@@ -8291,6 +8291,15 @@ class LEDRasterApp {
         if (document.getElementById('color2-hex')) {
             document.getElementById('color2-hex').value = hex2.toUpperCase();
         }
+        // On Windows the visible element is a separate ".../-swatch" div (the
+        // native input is hidden), and its background is otherwise only set
+        // while editing. Refresh it here so selecting a layer always shows
+        // THAT layer's colors — otherwise the two screens' swatches look
+        // swapped. Harmless on macOS where the swatch is hidden.
+        const color1Swatch = document.getElementById('color1-picker-swatch');
+        const color2Swatch = document.getElementById('color2-picker-swatch');
+        if (color1Swatch) color1Swatch.style.background = hex1;
+        if (color2Swatch) color2Swatch.style.background = hex2;
         // v0.8.7.8: sync the gradient editor to the (now current) layer.
         if (typeof this.loadGradientEditor === 'function') this.loadGradientEditor();
         if (typeof this.loadPaletteEditor === 'function') this.loadPaletteEditor();

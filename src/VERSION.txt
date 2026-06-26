@@ -17,6 +17,10 @@ Color picker: all five tabs complete (Windows color picker).
   colors); click a crayon to use it, its name shows below.
 - All tabs stay in sync with each other and the canvas updates live.
   (macOS keeps its own native picker; this is the Windows replica.)
+- FIX: On Windows, the Pixel Map color swatches in the sidebar could
+  show the wrong screen's colors (two screens looked "swapped").
+  Selecting a layer now refreshes the visible color swatches to match
+  that layer. macOS was unaffected.
 
 v0.8.10.0 - June 25, 2026
 ----------------------------
