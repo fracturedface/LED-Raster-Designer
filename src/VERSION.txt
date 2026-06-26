@@ -15,6 +15,13 @@ Custom color picker for Windows (macOS-style).
     browser supports it), and persistent saved-swatch wells.
   - The remaining tabs (wheel, palettes, image, pencils) are stubbed
     and arrive in later updates.
+- FIX: Border width fields now have the same up/down stepper arrows as
+  the Info field under Labels.
+- FIX: A new project's Show Look raster now matches the Preferences
+  raster size (e.g. 4K), instead of defaulting to 1080p.
+- FIX: macOS .dmg install window now displays correctly — the
+  background is sized to the window with a proper Retina (hi-dpi) TIFF,
+  so the "drag to Applications" art is no longer cropped/zoomed.
 
 v0.8.9.0 - June 25, 2026
 ----------------------------

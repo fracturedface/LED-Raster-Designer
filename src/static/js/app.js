@@ -1585,12 +1585,19 @@ class LEDRasterApp {
             layer.powerLabelTextColor = layer.powerLabelTextColor || '#000000';
             layer.panel_weight = prefs.panelWeight || 20;
             layer.weight_unit = prefs.weightUnit || 'kg';
-            // Apply default raster on startup so app open matches Preferences
+            // Apply default raster on startup so app open matches Preferences.
+            // Both the Pixel Map raster AND the Show Look raster start at the
+            // preference size (a new project's Show Look should match, not the
+            // server's 1080p default).
             this.project.raster_width = prefs.rasterWidth;
             this.project.raster_height = prefs.rasterHeight;
+            this.project.show_raster_width = prefs.rasterWidth;
+            this.project.show_raster_height = prefs.rasterHeight;
             if (window.canvasRenderer) {
-                window.canvasRenderer.rasterWidth = prefs.rasterWidth;
-                window.canvasRenderer.rasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.pixelRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.pixelRasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.showRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.showRasterHeight = prefs.rasterHeight;
             }
             const rw = document.getElementById('toolbar-raster-width');
             const rh = document.getElementById('toolbar-raster-height');
@@ -1604,7 +1611,9 @@ class LEDRasterApp {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     raster_width: prefs.rasterWidth,
-                    raster_height: prefs.rasterHeight
+                    raster_height: prefs.rasterHeight,
+                    show_raster_width: prefs.rasterWidth,
+                    show_raster_height: prefs.rasterHeight
                 })
             });
             sendClientLog('startup_preferences_enforced', {
@@ -1923,16 +1932,32 @@ class LEDRasterApp {
                     this.currentLayer = null;
                 }
 
-                // Reset raster dimensions to defaults
+                // Reset raster dimensions to defaults. Both the Pixel Map and
+                // Show Look rasters start at the preference size so a new
+                // project's Show Look matches (not the server's 1080p default).
                 const prefs = this.getPreferences();
-                window.canvasRenderer.rasterWidth = prefs.rasterWidth;
-                window.canvasRenderer.rasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.pixelRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.pixelRasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.showRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.showRasterHeight = prefs.rasterHeight;
                 document.getElementById('toolbar-raster-width').value = prefs.rasterWidth;
                 document.getElementById('toolbar-raster-height').value = prefs.rasterHeight;
 
                 // Save the default raster size to localStorage
                 // This way refresh after "New" will show defaults
                 this.saveRasterSize();
+                // Persist both rasters to the server so the Show Look raster
+                // doesn't snap back to the default on the next project echo.
+                fetch('/api/project', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        raster_width: prefs.rasterWidth,
+                        raster_height: prefs.rasterHeight,
+                        show_raster_width: prefs.rasterWidth,
+                        show_raster_height: prefs.rasterHeight
+                    })
+                });
 
                 // Fit to view
                 setTimeout(() => {

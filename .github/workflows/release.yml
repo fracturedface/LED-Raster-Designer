@@ -115,9 +115,17 @@ jobs:
           fi
           DMG="led_raster_designer_v${VERSION}_macos.dmg"
           brew install create-dmg
-          # Background is 1200x800 = 2× the 600x400 window, so create-dmg
-          # treats it as a retina (hi-dpi) background. The app icon sits left
-          # of the arrow, the Applications drop-link sits right of it.
+          # The DMG window is 600x400 points. Finder does NOT scale a plain
+          # background image, so it must match the window size (a 1200x800 PNG
+          # would show only its top-left quarter). For Retina crispness we fold
+          # the 600x400 (1x) and 1200x800 (2x) PNGs into a single hi-dpi TIFF
+          # via tiffutil; if that fails we fall back to the 1x PNG, which is
+          # already the correct on-screen size.
+          BG="build/dmg-background.png"
+          if tiffutil -cathidpicheck build/dmg-background.png build/dmg-background@2x.png -out build/dmg-background.tiff; then
+            BG="build/dmg-background.tiff"
+          fi
+          echo "Using DMG background: $BG"
           # create-dmg can exit non-zero on CI when the Finder AppleScript
           # styling step is flaky, yet still produce a valid DMG — so we retry
           # and finally accept any DMG that exists.
@@ -125,7 +133,7 @@ jobs:
             rm -f "$DMG"
             create-dmg \
               --volname "LED Raster Designer" \
-              --background "build/dmg-background.png" \
+              --background "$BG" \
               --window-pos 200 120 \
               --window-size 600 400 \
               --icon-size 120 \
