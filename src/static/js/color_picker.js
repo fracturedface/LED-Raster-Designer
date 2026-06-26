@@ -15,10 +15,27 @@
 (function () {
     'use strict';
 
+    function isClientMac() {
+        // Detect the BROWSER's OS, not the server's. A Windows browser hitting a
+        // Mac-hosted server must still get the custom picker; a Mac browser keeps
+        // the real native Apple picker. navigator.userAgentData is most reliable
+        // where available, falling back to platform/userAgent sniffing.
+        try {
+            const uaPlat = navigator.userAgentData && navigator.userAgentData.platform;
+            if (uaPlat) return /mac/i.test(uaPlat);
+        } catch (e) { /* ignore */ }
+        const plat = (navigator.platform || '') + ' ' + (navigator.userAgent || '');
+        return /Mac|iPhone|iPad|iPod/i.test(plat);
+    }
+
     function isEnabled() {
         if (/[?&]colorpicker=force/.test(location.search)) return true;
         try { if (localStorage.getItem('lrd_force_color_picker') === '1') return true; } catch (e) { /* ignore */ }
-        return String(window.LRD_PLATFORM || '').toLowerCase() === 'win32';
+        // Enable on every non-Apple client (Windows, Linux, ChromeOS). Apple
+        // clients keep their native picker. Gating on the client — not the
+        // server's window.LRD_PLATFORM — is what makes the LAN case work: a
+        // Windows browser on a Mac-hosted server now correctly gets the picker.
+        return !isClientMac();
     }
 
     // ── Color helpers ──────────────────────────────────────────────────

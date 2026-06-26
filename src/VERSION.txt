@@ -1,6 +1,17 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.11.1 - June 26, 2026
+----------------------------
+Color picker: fix activation over the network.
+
+- FIX: The custom color picker is now gated on the BROWSER's OS, not the
+  machine running the app. Previously it keyed off the server platform,
+  so a Windows browser connecting over the LAN to a Mac-hosted app got
+  the plain native picker instead of the custom one. Now any non-Apple
+  client (Windows, Linux, ChromeOS) gets the custom picker regardless of
+  what OS is hosting the app; Apple clients keep their native picker.
+
 v0.8.11.0 - June 26, 2026
 ----------------------------
 Color picker: all five tabs complete (Windows color picker).
