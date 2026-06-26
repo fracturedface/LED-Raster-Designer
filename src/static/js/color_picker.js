@@ -133,6 +133,44 @@
         pencils: '<svg viewBox="0 0 22 22"><g stroke-width="0"><path d="M5 19l2-9 2 0 2 9z" fill="#ff6b6b"/><path d="M10 19l2-11 2 0 2 11z" fill="#4ab1ff"/><path d="M15 19l1.6-7 1.6 0 1.6 7z" fill="#5ad06a"/></g><g fill="#2c2c2e"><path d="M7 10l1-1.5 1 1.5z"/><path d="M12 8l1-1.5 1 1.5z"/></g></svg>'
     };
 
+    // macOS "Crayons" set (48), for the Pencils tab.
+    const CRAYONS = [
+        { name: 'Licorice', hex: '#000000' }, { name: 'Lead', hex: '#191919' }, { name: 'Tungsten', hex: '#333333' },
+        { name: 'Iron', hex: '#4C4C4C' }, { name: 'Steel', hex: '#666666' }, { name: 'Tin', hex: '#7F7F7F' },
+        { name: 'Nickel', hex: '#808080' }, { name: 'Aluminum', hex: '#999999' }, { name: 'Magnesium', hex: '#B3B3B3' },
+        { name: 'Silver', hex: '#CCCCCC' }, { name: 'Mercury', hex: '#E6E6E6' }, { name: 'Snow', hex: '#FFFFFF' },
+        { name: 'Cayenne', hex: '#941100' }, { name: 'Mocha', hex: '#945200' }, { name: 'Asparagus', hex: '#929000' },
+        { name: 'Fern', hex: '#4F8F00' }, { name: 'Clover', hex: '#008F00' }, { name: 'Moss', hex: '#009051' },
+        { name: 'Teal', hex: '#009193' }, { name: 'Ocean', hex: '#005493' }, { name: 'Midnight', hex: '#011993' },
+        { name: 'Eggplant', hex: '#531A93' }, { name: 'Plum', hex: '#942193' }, { name: 'Maroon', hex: '#941751' },
+        { name: 'Maraschino', hex: '#FF2600' }, { name: 'Tangerine', hex: '#FF9300' }, { name: 'Lemon', hex: '#FFFB00' },
+        { name: 'Lime', hex: '#8EFA00' }, { name: 'Spring', hex: '#00F900' }, { name: 'Sea Foam', hex: '#00FA92' },
+        { name: 'Turquoise', hex: '#00FDFF' }, { name: 'Aqua', hex: '#0096FF' }, { name: 'Blueberry', hex: '#0433FF' },
+        { name: 'Grape', hex: '#9437FF' }, { name: 'Magenta', hex: '#FF40FF' }, { name: 'Strawberry', hex: '#FF2F92' },
+        { name: 'Salmon', hex: '#FF7E79' }, { name: 'Cantaloupe', hex: '#FFD479' }, { name: 'Banana', hex: '#FFFC79' },
+        { name: 'Honeydew', hex: '#D4FB79' }, { name: 'Flora', hex: '#73FA79' }, { name: 'Spindrift', hex: '#73FCD6' },
+        { name: 'Ice', hex: '#73FDFF' }, { name: 'Sky', hex: '#76D6FF' }, { name: 'Orchid', hex: '#7A81FF' },
+        { name: 'Lavender', hex: '#D783FF' }, { name: 'Bubblegum', hex: '#FF85FF' }, { name: 'Carnation', hex: '#FF8AD8' }
+    ];
+
+    // The named colors in the macOS "Apple" palette (Color Palettes tab).
+    const APPLE_PALETTE = [
+        { name: 'Cayenne', hex: '#941100' }, { name: 'Maraschino', hex: '#FF2600' }, { name: 'Salmon', hex: '#FF7E79' },
+        { name: 'Mocha', hex: '#945200' }, { name: 'Tangerine', hex: '#FF9300' }, { name: 'Cantaloupe', hex: '#FFD479' },
+        { name: 'Asparagus', hex: '#929000' }, { name: 'Lemon', hex: '#FFFB00' }, { name: 'Banana', hex: '#FFFC79' },
+        { name: 'Fern', hex: '#4F8F00' }, { name: 'Lime', hex: '#8EFA00' }, { name: 'Honeydew', hex: '#D4FB79' },
+        { name: 'Clover', hex: '#008F00' }, { name: 'Spring', hex: '#00F900' }, { name: 'Flora', hex: '#73FA79' },
+        { name: 'Moss', hex: '#009051' }, { name: 'Sea Foam', hex: '#00FA92' }, { name: 'Spindrift', hex: '#73FCD6' },
+        { name: 'Teal', hex: '#009193' }, { name: 'Turquoise', hex: '#00FDFF' }, { name: 'Ice', hex: '#73FDFF' },
+        { name: 'Ocean', hex: '#005493' }, { name: 'Aqua', hex: '#0096FF' }, { name: 'Sky', hex: '#76D6FF' },
+        { name: 'Midnight', hex: '#011993' }, { name: 'Blueberry', hex: '#0433FF' }, { name: 'Orchid', hex: '#7A81FF' },
+        { name: 'Eggplant', hex: '#531A93' }, { name: 'Grape', hex: '#9437FF' }, { name: 'Lavender', hex: '#D783FF' },
+        { name: 'Plum', hex: '#942193' }, { name: 'Magenta', hex: '#FF40FF' }, { name: 'Bubblegum', hex: '#FF85FF' },
+        { name: 'Maroon', hex: '#941751' }, { name: 'Strawberry', hex: '#FF2F92' }, { name: 'Carnation', hex: '#FF8AD8' },
+        { name: 'Licorice', hex: '#000000' }, { name: 'Tungsten', hex: '#333333' }, { name: 'Steel', hex: '#666666' },
+        { name: 'Aluminum', hex: '#999999' }, { name: 'Silver', hex: '#CCCCCC' }, { name: 'Snow', hex: '#FFFFFF' }
+    ];
+
     // ── The full Colors window (Sliders tab) ───────────────────────────
     const FullPanel = {
         el: null, target: null,
@@ -254,6 +292,9 @@
             Object.keys(this._tabBtns).forEach(k => this._tabBtns[k].classList.toggle('active', k === key));
             if (key === 'sliders') this._renderSliders();
             else if (key === 'wheel') this._renderWheel();
+            else if (key === 'palettes') this._renderPalettes();
+            else if (key === 'image') this._renderImage();
+            else if (key === 'pencils') this._renderPencils();
             else this._renderPlaceholder(key);
         },
 
@@ -510,6 +551,137 @@
             w.range.style.background = 'linear-gradient(to right, #000, ' + rgbStr(hsvToRgb(this.hsv.h, this.hsv.s, 100)) + ')';
             if (document.activeElement !== w.range) w.range.value = Math.round(this.hsv.v);
             if (document.activeElement !== w.num) w.num.value = Math.round(this.hsv.v);
+        },
+
+        // ── Color Palettes tab ─────────────────────────────────────────
+        _renderPalettes() {
+            this._wheel = null; this._controls = [];
+            this._body.innerHTML = '';
+            const row = document.createElement('div');
+            row.className = 'lrd-cw-moderow';
+            const sel = document.createElement('select');
+            sel.className = 'lrd-cw-mode';
+            const palettes = ['Apple', 'Web Safe Colors', 'Custom'];
+            palettes.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o); });
+            sel.value = this._paletteName || 'Apple';
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button'; addBtn.className = 'lrd-cw-opts'; addBtn.textContent = '+';
+            addBtn.title = 'Add the current color to the Custom palette';
+            row.appendChild(sel); row.appendChild(addBtn);
+            this._body.appendChild(row);
+
+            const list = document.createElement('div');
+            list.className = 'lrd-cw-palettelist';
+            this._body.appendChild(list);
+
+            const fill = () => {
+                this._paletteName = sel.value;
+                list.innerHTML = '';
+                const items = this._paletteItems(sel.value);
+                if (!items.length) {
+                    const e = document.createElement('div');
+                    e.className = 'lrd-cw-placeholder'; e.style.padding = '20px 8px';
+                    e.textContent = 'No colors yet — click + to add the current color.';
+                    list.appendChild(e); return;
+                }
+                items.forEach(it => {
+                    const r2 = document.createElement('div');
+                    r2.className = 'lrd-cw-paletterow';
+                    const sw = document.createElement('span'); sw.className = 'lrd-cw-paletteswatch'; sw.style.background = it.hex;
+                    const nm = document.createElement('span'); nm.className = 'lrd-cw-palettename'; nm.textContent = it.name;
+                    r2.appendChild(sw); r2.appendChild(nm);
+                    r2.addEventListener('click', () => { this.rgb = hexToRgb(it.hex); this._afterRgbChange(); });
+                    list.appendChild(r2);
+                });
+            };
+            sel.addEventListener('change', fill);
+            addBtn.addEventListener('click', () => {
+                const cur = this._loadCustomPalette();
+                cur.push({ name: toHex(this.rgb.r, this.rgb.g, this.rgb.b), hex: toHex(this.rgb.r, this.rgb.g, this.rgb.b) });
+                this._saveCustomPalette(cur);
+                sel.value = 'Custom'; fill();
+            });
+            fill();
+        },
+        _paletteItems(name) {
+            if (name === 'Apple') return APPLE_PALETTE;
+            if (name === 'Custom') return this._loadCustomPalette();
+            // Web Safe: 216 colors (00,33,66,99,CC,FF per channel)
+            const out = []; const steps = ['00', '33', '66', '99', 'CC', 'FF'];
+            steps.forEach(r => steps.forEach(g => steps.forEach(b => {
+                const hex = ('#' + r + g + b).toUpperCase(); out.push({ name: hex, hex });
+            })));
+            return out;
+        },
+        _loadCustomPalette() { try { return JSON.parse(localStorage.getItem('lrd_cp_palette') || '[]'); } catch (e) { return []; } },
+        _saveCustomPalette(a) { try { localStorage.setItem('lrd_cp_palette', JSON.stringify(a.slice(0, 200))); } catch (e) { /* ignore */ } },
+
+        // ── Image Palettes tab (spectrum) ──────────────────────────────
+        _renderImage() {
+            this._wheel = null; this._controls = [];
+            this._body.innerHTML = '';
+            const row = document.createElement('div'); row.className = 'lrd-cw-moderow';
+            const sel = document.createElement('select'); sel.className = 'lrd-cw-mode';
+            const o = document.createElement('option'); o.textContent = 'Spectrum'; sel.appendChild(o);
+            row.appendChild(sel); this._body.appendChild(row);
+
+            const W = 222, H = 150;
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H; canvas.className = 'lrd-cw-spectrum';
+            const ctx = canvas.getContext('2d');
+            const img = ctx.createImageData(W, H);
+            const d = img.data;
+            for (let y = 0; y < H; y++) {
+                for (let x = 0; x < W; x++) {
+                    const hue = x / (W - 1) * 360;
+                    const t = y / (H - 1);                 // 0 (top) → 1 (bottom)
+                    const sat = t < 0.5 ? t / 0.5 : 1;     // white → saturated
+                    const val = t < 0.5 ? 1 : 1 - (t - 0.5) / 0.5; // saturated → black
+                    const c = hsvToRgb(hue, sat * 100, val * 100);
+                    const i = (y * W + x) * 4;
+                    d[i] = c.r; d[i + 1] = c.g; d[i + 2] = c.b; d[i + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            this._body.appendChild(canvas);
+
+            const pick = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = clamp(Math.round((e.clientX - rect.left) / rect.width * W), 0, W - 1);
+                const y = clamp(Math.round((e.clientY - rect.top) / rect.height * H), 0, H - 1);
+                const p = ctx.getImageData(x, y, 1, 1).data;
+                this.rgb = { r: p[0], g: p[1], b: p[2] };
+                this._afterRgbChange();
+            };
+            canvas.addEventListener('mousedown', (e) => {
+                e.preventDefault(); pick(e);
+                const mm = (ev) => pick(ev);
+                const mu = () => { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+                document.addEventListener('mousemove', mm); document.addEventListener('mouseup', mu);
+            });
+        },
+
+        // ── Pencils tab (Crayons) ──────────────────────────────────────
+        _renderPencils() {
+            this._wheel = null; this._controls = [];
+            this._body.innerHTML = '';
+            const grid = document.createElement('div'); grid.className = 'lrd-cw-pencils';
+            const nameEl = document.createElement('div'); nameEl.className = 'lrd-cw-pencilname';
+            CRAYONS.forEach(c => {
+                const cell = document.createElement('div');
+                cell.className = 'lrd-cw-pencil'; cell.style.background = c.hex; cell.title = c.name;
+                cell.addEventListener('click', () => {
+                    nameEl.textContent = c.name;
+                    this.rgb = hexToRgb(c.hex); this._afterRgbChange();
+                });
+                cell.addEventListener('mouseenter', () => { nameEl.textContent = c.name; });
+                grid.appendChild(cell);
+            });
+            this._body.appendChild(grid);
+            this._body.appendChild(nameEl);
+            const cur = toHex(this.rgb.r, this.rgb.g, this.rgb.b);
+            const match = CRAYONS.find(c => c.hex.toUpperCase() === cur);
+            nameEl.textContent = match ? match.name : 'Pick a crayon';
         },
 
         // Push current state into the visible controls without disturbing the

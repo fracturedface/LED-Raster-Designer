@@ -3,15 +3,20 @@ LED RASTER DESIGNER - VERSION HISTORY
 
 v0.8.11.0 - June 26, 2026
 ----------------------------
-Color picker: the Color Wheel tab.
+Color picker: all five tabs complete (Windows color picker).
 
-- FEATURE: The Colors window now has a working Color Wheel tab (the
-  Windows color picker). An HSV wheel sets hue (angle) and saturation
-  (radius); a Brightness slider below sets value. Click or drag on the
-  wheel to pick, drag the slider to brighten/darken. Stays in sync with
-  the Sliders tab and the canvas updates live.
-- The remaining tabs (Palettes, Image, Pencils) are still stubbed for
-  later updates.
+- FEATURE: Color Wheel tab. An HSV wheel sets hue (angle) and
+  saturation (radius); a Brightness slider below sets value. Click or
+  drag the wheel to pick, drag the slider to brighten/darken.
+- FEATURE: Color Palettes tab. Pick from the Apple palette or the 216
+  Web Safe colors as a named list, or save the current color to a
+  persistent Custom palette with the + button.
+- FEATURE: Image Palettes tab. A spectrum image (hue across, white →
+  saturated → black down); click or drag anywhere to sample a color.
+- FEATURE: Pencils tab. The classic crayon-style grid (48 named
+  colors); click a crayon to use it, its name shows below.
+- All tabs stay in sync with each other and the canvas updates live.
+  (macOS keeps its own native picker; this is the Windows replica.)
 
 v0.8.10.0 - June 25, 2026
 ----------------------------
