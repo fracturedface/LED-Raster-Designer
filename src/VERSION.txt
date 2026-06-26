@@ -22,6 +22,12 @@ Custom color picker for Windows (macOS-style).
 - FIX: macOS .dmg install window now displays correctly — the
   background is sized to the window with a proper Retina (hi-dpi) TIFF,
   so the "drag to Applications" art is no longer cropped/zoomed.
+- FIX: Network access regression. socket.io is now bundled and served
+  by the app instead of loaded from a CDN, so devices reaching the app
+  over the LAN no longer need internet. Previously, if the client's
+  browser couldn't load the CDN, the whole app failed to initialize
+  (blank — no screens, no interactions). Boot is also now resilient to
+  any socket failure so the project and controls always load.
 
 v0.8.9.0 - June 25, 2026
 ----------------------------

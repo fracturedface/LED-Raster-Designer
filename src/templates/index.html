@@ -1973,7 +1973,9 @@
         }
     </style>
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <!-- Bundled locally (not a CDN) so the app works over a LAN without the
+         client needing internet access. Must match the python-socketio server. -->
+    <script src="/static/js/socket.io.min.js"></script>
     <script src="/static/js/canvas.js"></script>
     <script src="/static/js/color_picker.js"></script>
     <script src="/static/js/app.js"></script>

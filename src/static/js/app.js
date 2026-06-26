@@ -953,7 +953,14 @@ class LEDRasterApp {
 
         // Check server session FIRST - if server restarted, clear localStorage
         this.checkServerSession().then(() => {
-            this.connectWebSocket();
+            // Never let a socket/transport failure block the rest of boot. If
+            // io() is missing or throws, the app must still load the project and
+            // wire up interactions (it just won't get live push updates).
+            try {
+                this.connectWebSocket();
+            } catch (e) {
+                console.error('WebSocket init failed; continuing without live updates:', e);
+            }
             this.loadProject();
             this.setupEventListeners();
             sendClientLog('app_init', { ua: navigator.userAgent });
