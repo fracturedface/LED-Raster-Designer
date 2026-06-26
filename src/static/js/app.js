@@ -1114,9 +1114,15 @@ class LEDRasterApp {
             // On reconnect, preserve the current raster size (it may have been
             // set by preferences or user action). Only apply the server's raster
             // on cold start when no preference override will follow.
+            // Capture BOTH the Pixel Map raster and the Show Look raster
+            // explicitly (not the view-dependent getter) so a stale connect-time
+            // echo can't revert the Show Look raster while leaving Pixel Map's
+            // intact — the asymmetry that left Show Look at 1080p.
             const preserveRaster = this._initialLoadComplete;
-            const prevRasterW = preserveRaster ? window.canvasRenderer.rasterWidth : null;
-            const prevRasterH = preserveRaster ? window.canvasRenderer.rasterHeight : null;
+            const prevRasterW = preserveRaster ? window.canvasRenderer.pixelRasterWidth : null;
+            const prevRasterH = preserveRaster ? window.canvasRenderer.pixelRasterHeight : null;
+            const prevShowW = preserveRaster ? window.canvasRenderer.showRasterWidth : null;
+            const prevShowH = preserveRaster ? window.canvasRenderer.showRasterHeight : null;
 
             this.project = data;
             this.dedupeProjectLayers('socket_project_data');
@@ -1126,16 +1132,23 @@ class LEDRasterApp {
             }
 
             // On reconnect, restore the raster size we had before the server
-            // overwrote it with its default.
+            // overwrote it with its default — both the Pixel Map raster and the
+            // Show Look raster, so neither reverts.
             if (preserveRaster && prevRasterW && prevRasterH) {
                 this.project.raster_width = prevRasterW;
                 this.project.raster_height = prevRasterH;
-                window.canvasRenderer.rasterWidth = prevRasterW;
-                window.canvasRenderer.rasterHeight = prevRasterH;
+                window.canvasRenderer.pixelRasterWidth = prevRasterW;
+                window.canvasRenderer.pixelRasterHeight = prevRasterH;
+                if (prevShowW && prevShowH) {
+                    this.project.show_raster_width = prevShowW;
+                    this.project.show_raster_height = prevShowH;
+                    window.canvasRenderer.showRasterWidth = prevShowW;
+                    window.canvasRenderer.showRasterHeight = prevShowH;
+                }
                 const rw = document.getElementById('toolbar-raster-width');
                 const rh = document.getElementById('toolbar-raster-height');
-                if (rw) rw.value = prevRasterW;
-                if (rh) rh.value = prevRasterH;
+                if (rw) rw.value = window.canvasRenderer.rasterWidth;
+                if (rh) rh.value = window.canvasRenderer.rasterHeight;
             }
 
             // Restore client-side properties and layer defaults.
