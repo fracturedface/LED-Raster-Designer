@@ -1,6 +1,89 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.11.1 - June 26, 2026
+----------------------------
+Color picker: fix activation over the network.
+
+- FIX: The custom color picker is now gated on the BROWSER's OS, not the
+  machine running the app. Previously it keyed off the server platform,
+  so a Windows browser connecting over the LAN to a Mac-hosted app got
+  the plain native picker instead of the custom one. Now any non-Apple
+  client (Windows, Linux, ChromeOS) gets the custom picker regardless of
+  what OS is hosting the app; Apple clients keep their native picker.
+
+v0.8.11.0 - June 26, 2026
+----------------------------
+Color picker: all five tabs complete (Windows color picker).
+
+- FEATURE: Color Wheel tab. An HSV wheel sets hue (angle) and
+  saturation (radius); a Brightness slider below sets value. Click or
+  drag the wheel to pick, drag the slider to brighten/darken.
+- FEATURE: Color Palettes tab. Pick from the Apple palette or the 216
+  Web Safe colors as a named list, or save the current color to a
+  persistent Custom palette with the + button.
+- FEATURE: Image Palettes tab. A spectrum image (hue across, white →
+  saturated → black down); click or drag anywhere to sample a color.
+- FEATURE: Pencils tab. The classic crayon-style grid (48 named
+  colors); click a crayon to use it, its name shows below.
+- All tabs stay in sync with each other and the canvas updates live.
+  (macOS keeps its own native picker; this is the Windows replica.)
+- FIX: On Windows, the Pixel Map color swatches in the sidebar could
+  show the wrong screen's colors (two screens looked "swapped").
+  Selecting a layer now refreshes the visible color swatches to match
+  that layer. macOS was unaffected.
+
+v0.8.10.0 - June 25, 2026
+----------------------------
+Custom color picker for Windows (macOS-style).
+
+- FEATURE: A replica of the macOS Color picker, shown on Windows in
+  place of the OS color dialog. macOS keeps its own native picker.
+  - Compact swatch popover: vivid row, gray ramp, spectrum matrix.
+  - "Show Colors…" opens the full Colors window with the Sliders tab:
+    Grayscale, RGB (with hex field), CMYK, and HSB slider modes, all
+    live-updating each other and the canvas.
+  - Draggable window, current-color well, screen eyedropper (where the
+    browser supports it), and persistent saved-swatch wells.
+  - The remaining tabs (wheel, palettes, image, pencils) are stubbed
+    and arrive in later updates.
+- FIX: Border width fields now have the same up/down stepper arrows as
+  the Info field under Labels.
+- FIX: A new project's Show Look raster now matches the Preferences
+  raster size (e.g. 4K), instead of defaulting to 1080p.
+- FIX: macOS .dmg install window now displays correctly — the
+  background is sized to the window with a proper Retina (hi-dpi) TIFF,
+  so the "drag to Applications" art is no longer cropped/zoomed.
+- FIX: Network access regression. socket.io is now bundled and served
+  by the app instead of loaded from a CDN, so devices reaching the app
+  over the LAN no longer need internet. Previously, if the client's
+  browser couldn't load the CDN, the whole app failed to initialize
+  (blank — no screens, no interactions). Boot is also now resilient to
+  any socket failure so the project and controls always load.
+
+v0.8.9.0 - June 25, 2026
+----------------------------
+Project fonts, per-layer border width, and a proper macOS installer.
+
+- FEATURE: Project font. Choose a font for all on-canvas text
+  (screen names, Show Look labels, totals, etc.) in Preferences.
+  The picker lists the fonts actually installed on your computer
+  (Mac or PC) — enumerated by the app, so no fonts need to be
+  bundled and it works in any browser — with a few recommended
+  quick-picks at the top.
+- FEATURE: Adjustable panel border width. Each screen layer now has
+  a border thickness in pixels (1-20), settable per Border type
+  (panel / cabinet / data / power). Travels with duplicate, copy,
+  and paste, and persists across save/load.
+- macOS: ships as a .dmg installer with a "drag to Applications"
+  window. Installing to /Applications is what lets macOS show the
+  Local Network permission prompt, which is required for the app to
+  be reachable over your network.
+- macOS: logs now live in ~/Library/Logs/LED Raster Designer/ and
+  presets in ~/Library/Application Support/LED Raster Designer/,
+  instead of next to the app. The download is now just the app.
+  (Windows logs/presets move to %LOCALAPPDATA%\LED Raster Designer.)
+
 v0.8.8.0 - June 17, 2026
 ----------------------------
 Gradients + multi-color cabinet palettes (standard).

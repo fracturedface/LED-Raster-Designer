@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LED Raster Designer v0.8.8.0</title>
+    <title>LED Raster Designer v0.8.11.1</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/color_picker.css">
+    <script>window.LRD_PLATFORM = "{{ server_platform }}";</script>
 </head>
 <body>
     <div id="app">
@@ -84,7 +86,7 @@
 
         <div id="toolbar">
             <div class="toolbar-section toolbar-project">
-                <h1>LED Raster Designer <span style="font-size: 0.6em; color: #888;">v0.8.8.0</span></h1>
+                <h1>LED Raster Designer <span style="font-size: 0.6em; color: #888;">v0.8.11.1</span></h1>
                 <div style="position:relative;">
                     <input type="text" id="project-name" value="Untitled Project" class="editable-project-name">
                     <div id="project-name-warning" style="display:none; position:absolute; top:100%; left:0; margin-top:4px; padding:4px 8px; font-size:11px; color:#f5a623; background:#1a1a1a; border:1px solid #f5a623; border-radius:4px; white-space:nowrap; z-index:1000; pointer-events:none;"></div>
@@ -197,9 +199,11 @@
                                 <input type="range" id="image-scale-range" min="10" max="500" value="100" step="1" style="width: 100%;">
                             </div>
                         </div>
-                        <div class="info-row checkbox-row screen-only" data-tooltip="Border, Show or hide grid lines between individual cabinets on the pixel map view.">
+                        <div class="info-row checkbox-row screen-only" data-tooltip="Border, Show or hide grid lines between individual cabinets on the pixel map view. Width is in LED pixels (1 = 1 LED).">
                             <input type="checkbox" id="show-panel-borders">
-                            <label for="show-panel-borders">Border</label>
+                            <label for="show-panel-borders" style="flex: 1;">Border</label>
+                            <input type="number" id="panel-border-width" min="1" max="20" step="1" value="2" style="width: 64px;" title="Border width in LED pixels" aria-label="Panel border width in LED pixels">
+                            <span style="font-size: 11px; color: #888;">px</span>
                         </div>
                         <div class="info-row checkbox-row screen-only" data-tooltip="Circle with X, Draw an X through each cabinet with a circle, useful for marking dead or unused panels.">
                             <input type="checkbox" id="show-circle-with-x">
@@ -357,7 +361,9 @@
                         
                         <div class="info-row checkbox-row" data-tooltip="Border, Show or hide grid lines between cabinets in Cabinet ID view.">
                             <input type="checkbox" id="show-panel-borders-cabinet" checked>
-                            <label for="show-panel-borders-cabinet">Border</label>
+                            <label for="show-panel-borders-cabinet" style="flex: 1;">Border</label>
+                            <input type="number" id="panel-border-width-cabinet" min="1" max="20" step="1" value="2" style="width: 64px;" title="Border width in LED pixels" aria-label="Panel border width in LED pixels">
+                            <span style="font-size: 11px; color: #888;">px</span>
                         </div>
                         <div class="info-row" data-tooltip="Border Color, Color of the grid lines drawn between cabinets in Cabinet ID view.">
                             <label>Border Color</label>
@@ -731,7 +737,9 @@
                         
                         <div class="info-row checkbox-row" data-tooltip="Border, Show or hide grid lines between cabinets in Data Flow view.">
                             <input type="checkbox" id="show-panel-borders-data" checked>
-                            <label for="show-panel-borders-data">Border</label>
+                            <label for="show-panel-borders-data" style="flex: 1;">Border</label>
+                            <input type="number" id="panel-border-width-data" min="1" max="20" step="1" value="2" style="width: 64px;" title="Border width in LED pixels" aria-label="Panel border width in LED pixels">
+                            <span style="font-size: 11px; color: #888;">px</span>
                         </div>
                         <div class="info-row" data-tooltip="Border Color, Color of the grid lines drawn between cabinets in Data Flow view.">
                             <label>Border Color</label>
@@ -1076,7 +1084,9 @@
                         
                         <div class="info-row checkbox-row" data-tooltip="Border, Show or hide grid lines between cabinets in Power view.">
                             <input type="checkbox" id="show-panel-borders-power" checked>
-                            <label for="show-panel-borders-power">Border</label>
+                            <label for="show-panel-borders-power" style="flex: 1;">Border</label>
+                            <input type="number" id="panel-border-width-power" min="1" max="20" step="1" value="2" style="width: 64px;" title="Border width in LED pixels" aria-label="Panel border width in LED pixels">
+                            <span style="font-size: 11px; color: #888;">px</span>
                         </div>
                         <div class="info-row" data-tooltip="Border Color, Color of the grid lines drawn between cabinets in Power view.">
                             <label>Border Color</label>
@@ -1664,6 +1674,14 @@
                     </div>
                 </div>
                 <div class="prefs-group">
+                    <label>Fonts</label>
+                    <div class="prefs-row" style="align-items: center; gap: 8px;">
+                        <span style="font-size: 11px; color: #888;">Project font</span>
+                        <select id="pref-font" style="flex: 1;"></select>
+                    </div>
+                    <div style="font-size: 11px; color: #888; margin-top: 6px;">Lists the fonts installed on this computer. Used for all on-canvas text.</div>
+                </div>
+                <div class="prefs-group">
                     <label>Default Data Pattern</label>
                     <div id="pref-data-flow-pattern-grid" class="prefs-flow-grid"></div>
                 </div>
@@ -1955,8 +1973,11 @@
         }
     </style>
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <!-- Bundled locally (not a CDN) so the app works over a LAN without the
+         client needing internet access. Must match the python-socketio server. -->
+    <script src="/static/js/socket.io.min.js"></script>
     <script src="/static/js/canvas.js"></script>
+    <script src="/static/js/color_picker.js"></script>
     <script src="/static/js/app.js"></script>
     <script src="/static/js/updater.js"></script>
 </body>

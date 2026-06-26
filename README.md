@@ -1,4 +1,4 @@
-# LED Raster Designer v0.8.8.0
+# LED Raster Designer v0.8.11.1
 
 A professional LED video wall layout designer for live events, concerts, and installations.
 
@@ -9,11 +9,16 @@ Design LED cabinet layouts, plan the real-world stage layout, configure data flo
 ## Getting Started
 
 ### Mac
-1. **[Download the latest Mac release](../../releases/latest)**
-2. Unzip the file
-3. Double-click **LED Raster Designer.app**
-4. Your browser opens automatically, start designing
-5. Look for the 💡 in your menu bar to reopen the browser or quit
+1. **[Download the latest Mac release](../../releases/latest)** (a `.dmg` file)
+2. Open the `.dmg` and **drag LED Raster Designer onto the Applications folder** shown in the window
+3. Open **LED Raster Designer** from your Applications folder (or Launchpad)
+4. When macOS asks, **allow it to access devices on your Local Network** — this is required so other devices (and your own browser) can reach the app
+5. Your browser opens automatically, start designing
+6. Look for the 💡 in your menu bar to reopen the browser or quit
+
+> **Why Applications matters:** macOS only shows the Local Network permission prompt for apps installed in `/Applications`. If you run it from the Downloads folder or directly from the disk image, the prompt never appears and the app can't be reached over your network. Always install it to Applications first.
+>
+> If you ever need them, logs live in **`~/Library/Logs/LED Raster Designer/`** (also reachable via the app's **Show Logs → Open Folder** button).
 
 ### Windows
 1. **[Download the latest Windows release](../../releases/latest)**

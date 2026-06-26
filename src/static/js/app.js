@@ -169,48 +169,26 @@ function setupColorPickerWithHex(pickerId, hexId, onChangeCallback) {
 
     if (!picker || !hex) return;
 
+    // The visible control is always the native <input type="color">, on every
+    // platform. On Windows, color_picker.js intercepts clicks on it and shows
+    // the custom macOS-style picker; on macOS the OS picker opens. This is the
+    // single color-picker path — there is no separate swatch/popover anymore.
     const setColor = (val, isFinal = false) => {
         const normalized = normalizeHex(val);
         if (!normalized) return;
         picker.value = normalized;
         hex.value = normalized.toUpperCase();
-        if (swatch) swatch.style.background = normalized;
         if (onChangeCallback) onChangeCallback(normalized, isFinal);
-        pushRecentColor(normalized);
     };
 
-    if (isMacOS()) {
-        picker.type = 'color';
-        picker.style.display = 'inline-block';
-        picker.classList.add('native-color-input');
-        if (swatch) {
-            swatch.classList.add('color-swatch-hidden');
-            swatch.style.display = 'none';
-            swatch.setAttribute('hidden', 'true');
-        }
-        picker.addEventListener('input', (e) => setColor(e.target.value, false));
-        picker.addEventListener('change', (e) => setColor(e.target.value, true));
-        hex.addEventListener('change', () => setColor(hex.value, true));
-        setColor(picker.value || hex.value || '#ffffff', true);
-        return;
-    }
-
-    picker.style.display = 'none';
-    if (swatch) {
-        swatch.classList.remove('color-swatch-hidden');
-        swatch.removeAttribute('hidden');
-        swatch.style.display = 'inline-block';
-        swatch.addEventListener('click', (e) => {
-            e.preventDefault();
-            openColorPopover(swatch, (color) => setColor(color, true), () => openColorModal(setColor));
-        });
-    }
-
-    hex.addEventListener('change', () => {
-        setColor(hex.value, true);
-    });
-
-    // Initialize swatch
+    picker.type = 'color';
+    picker.style.display = 'inline-block';
+    picker.classList.add('native-color-input');
+    // Hide the legacy swatch element if the template still has one.
+    if (swatch) { swatch.style.display = 'none'; swatch.setAttribute('hidden', 'true'); }
+    picker.addEventListener('input', (e) => setColor(e.target.value, false));
+    picker.addEventListener('change', (e) => setColor(e.target.value, true));
+    hex.addEventListener('change', () => setColor(hex.value, true));
     setColor(picker.value || hex.value || '#ffffff', true);
 }
 
@@ -953,7 +931,14 @@ class LEDRasterApp {
 
         // Check server session FIRST - if server restarted, clear localStorage
         this.checkServerSession().then(() => {
-            this.connectWebSocket();
+            // Never let a socket/transport failure block the rest of boot. If
+            // io() is missing or throws, the app must still load the project and
+            // wire up interactions (it just won't get live push updates).
+            try {
+                this.connectWebSocket();
+            } catch (e) {
+                console.error('WebSocket init failed; continuing without live updates:', e);
+            }
             this.loadProject();
             this.setupEventListeners();
             sendClientLog('app_init', { ua: navigator.userAgent });
@@ -1114,9 +1099,15 @@ class LEDRasterApp {
             // On reconnect, preserve the current raster size (it may have been
             // set by preferences or user action). Only apply the server's raster
             // on cold start when no preference override will follow.
+            // Capture BOTH the Pixel Map raster and the Show Look raster
+            // explicitly (not the view-dependent getter) so a stale connect-time
+            // echo can't revert the Show Look raster while leaving Pixel Map's
+            // intact — the asymmetry that left Show Look at 1080p.
             const preserveRaster = this._initialLoadComplete;
-            const prevRasterW = preserveRaster ? window.canvasRenderer.rasterWidth : null;
-            const prevRasterH = preserveRaster ? window.canvasRenderer.rasterHeight : null;
+            const prevRasterW = preserveRaster ? window.canvasRenderer.pixelRasterWidth : null;
+            const prevRasterH = preserveRaster ? window.canvasRenderer.pixelRasterHeight : null;
+            const prevShowW = preserveRaster ? window.canvasRenderer.showRasterWidth : null;
+            const prevShowH = preserveRaster ? window.canvasRenderer.showRasterHeight : null;
 
             this.project = data;
             this.dedupeProjectLayers('socket_project_data');
@@ -1126,16 +1117,23 @@ class LEDRasterApp {
             }
 
             // On reconnect, restore the raster size we had before the server
-            // overwrote it with its default.
+            // overwrote it with its default — both the Pixel Map raster and the
+            // Show Look raster, so neither reverts.
             if (preserveRaster && prevRasterW && prevRasterH) {
                 this.project.raster_width = prevRasterW;
                 this.project.raster_height = prevRasterH;
-                window.canvasRenderer.rasterWidth = prevRasterW;
-                window.canvasRenderer.rasterHeight = prevRasterH;
+                window.canvasRenderer.pixelRasterWidth = prevRasterW;
+                window.canvasRenderer.pixelRasterHeight = prevRasterH;
+                if (prevShowW && prevShowH) {
+                    this.project.show_raster_width = prevShowW;
+                    this.project.show_raster_height = prevShowH;
+                    window.canvasRenderer.showRasterWidth = prevShowW;
+                    window.canvasRenderer.showRasterHeight = prevShowH;
+                }
                 const rw = document.getElementById('toolbar-raster-width');
                 const rh = document.getElementById('toolbar-raster-height');
-                if (rw) rw.value = prevRasterW;
-                if (rh) rh.value = prevRasterH;
+                if (rw) rw.value = window.canvasRenderer.rasterWidth;
+                if (rh) rh.value = window.canvasRenderer.rasterHeight;
             }
 
             // Restore client-side properties and layer defaults.
@@ -1585,12 +1583,19 @@ class LEDRasterApp {
             layer.powerLabelTextColor = layer.powerLabelTextColor || '#000000';
             layer.panel_weight = prefs.panelWeight || 20;
             layer.weight_unit = prefs.weightUnit || 'kg';
-            // Apply default raster on startup so app open matches Preferences
+            // Apply default raster on startup so app open matches Preferences.
+            // Both the Pixel Map raster AND the Show Look raster start at the
+            // preference size (a new project's Show Look should match, not the
+            // server's 1080p default).
             this.project.raster_width = prefs.rasterWidth;
             this.project.raster_height = prefs.rasterHeight;
+            this.project.show_raster_width = prefs.rasterWidth;
+            this.project.show_raster_height = prefs.rasterHeight;
             if (window.canvasRenderer) {
-                window.canvasRenderer.rasterWidth = prefs.rasterWidth;
-                window.canvasRenderer.rasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.pixelRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.pixelRasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.showRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.showRasterHeight = prefs.rasterHeight;
             }
             const rw = document.getElementById('toolbar-raster-width');
             const rh = document.getElementById('toolbar-raster-height');
@@ -1604,7 +1609,9 @@ class LEDRasterApp {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     raster_width: prefs.rasterWidth,
-                    raster_height: prefs.rasterHeight
+                    raster_height: prefs.rasterHeight,
+                    show_raster_width: prefs.rasterWidth,
+                    show_raster_height: prefs.rasterHeight
                 })
             });
             sendClientLog('startup_preferences_enforced', {
@@ -1923,16 +1930,32 @@ class LEDRasterApp {
                     this.currentLayer = null;
                 }
 
-                // Reset raster dimensions to defaults
+                // Reset raster dimensions to defaults. Both the Pixel Map and
+                // Show Look rasters start at the preference size so a new
+                // project's Show Look matches (not the server's 1080p default).
                 const prefs = this.getPreferences();
-                window.canvasRenderer.rasterWidth = prefs.rasterWidth;
-                window.canvasRenderer.rasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.pixelRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.pixelRasterHeight = prefs.rasterHeight;
+                window.canvasRenderer.showRasterWidth = prefs.rasterWidth;
+                window.canvasRenderer.showRasterHeight = prefs.rasterHeight;
                 document.getElementById('toolbar-raster-width').value = prefs.rasterWidth;
                 document.getElementById('toolbar-raster-height').value = prefs.rasterHeight;
 
                 // Save the default raster size to localStorage
                 // This way refresh after "New" will show defaults
                 this.saveRasterSize();
+                // Persist both rasters to the server so the Show Look raster
+                // doesn't snap back to the default on the next project echo.
+                fetch('/api/project', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        raster_width: prefs.rasterWidth,
+                        raster_height: prefs.rasterHeight,
+                        show_raster_width: prefs.rasterWidth,
+                        show_raster_height: prefs.rasterHeight
+                    })
+                });
 
                 // Fit to view
                 setTimeout(() => {
@@ -2761,8 +2784,28 @@ class LEDRasterApp {
             window.canvasRenderer.render();
         });
         
-        // Border width is fixed at 2px - no input needed
-        
+        // v0.8.8.x: per-layer panel border width, in LED pixels. One value
+        // per layer; mirror it across the four tab inputs so editing it on
+        // any tab updates the others.
+        const BORDER_WIDTH_IDS = ['panel-border-width', 'panel-border-width-cabinet',
+            'panel-border-width-data', 'panel-border-width-power'];
+        BORDER_WIDTH_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', () => {
+                let v = Math.round(Number(el.value));
+                if (!Number.isFinite(v) || v < 1) v = 1;
+                if (v > 20) v = 20;
+                BORDER_WIDTH_IDS.forEach(otherId => {
+                    const o = document.getElementById(otherId);
+                    if (o) o.value = v;
+                });
+                this.applyToSelectedLayers(layer => { layer.panel_border_width = v; });
+                window.canvasRenderer.render();
+                this.updateLayers(this.getSelectedLayers());
+            });
+        });
+
         // Sync border visibility checkboxes across tabs
         ['show-panel-borders', 'show-panel-borders-cabinet', 'show-panel-borders-data', 'show-panel-borders-power'].forEach(id => {
             const checkbox = document.getElementById(id);
@@ -5774,6 +5817,8 @@ class LEDRasterApp {
         layer.border_color_cabinet = layer.border_color || prefs.borderColor;
         layer.border_color_data = layer.border_color || prefs.borderColor;
         layer.border_color_power = layer.border_color || prefs.borderColor;
+        // v0.8.8.x: per-layer cabinet border width in LED pixels.
+        if (layer.panel_border_width == null) layer.panel_border_width = 2;
         // v0.8.7.8: multi-color cabinet palette. 'checker' keeps the legacy
         // 2-color checkerboard (color1/color2); palette modes distribute
         // panelColors across cabinets by grid position.
@@ -7855,6 +7900,12 @@ class LEDRasterApp {
         
         // Load border settings (default to TRUE when undefined) - sync across all tabs
         const showBorders = getCommon(l => l.show_panel_borders !== undefined ? l.show_panel_borders : true);
+        // v0.8.8.x: per-layer border width.
+        const borderWidth = getCommon(l => l.panel_border_width != null ? l.panel_border_width : 2);
+        ['panel-border-width', 'panel-border-width-cabinet', 'panel-border-width-data', 'panel-border-width-power'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = borderWidth.mixed ? '' : borderWidth.value;
+        });
         const borderColorPixel = getCommon(l => l.border_color_pixel || l.border_color || '#ffffff');
         const borderColorCabinet = getCommon(l => l.border_color_cabinet || l.border_color || '#ffffff');
         const borderColorData = getCommon(l => l.border_color_data || l.border_color || '#ffffff');
@@ -8218,6 +8269,15 @@ class LEDRasterApp {
         if (document.getElementById('color2-hex')) {
             document.getElementById('color2-hex').value = hex2.toUpperCase();
         }
+        // On Windows the visible element is a separate ".../-swatch" div (the
+        // native input is hidden), and its background is otherwise only set
+        // while editing. Refresh it here so selecting a layer always shows
+        // THAT layer's colors — otherwise the two screens' swatches look
+        // swapped. Harmless on macOS where the swatch is hidden.
+        const color1Swatch = document.getElementById('color1-picker-swatch');
+        const color2Swatch = document.getElementById('color2-picker-swatch');
+        if (color1Swatch) color1Swatch.style.background = hex1;
+        if (color2Swatch) color2Swatch.style.background = hex2;
         // v0.8.7.8: sync the gradient editor to the (now current) layer.
         if (typeof this.loadGradientEditor === 'function') this.loadGradientEditor();
         if (typeof this.loadPaletteEditor === 'function') this.loadPaletteEditor();
@@ -9587,7 +9647,12 @@ class LEDRasterApp {
             powerVoltage: 110,
             powerAmperage: 15,
             powerWatts: 200,
-            canvasGap: 0
+            canvasGap: 0,
+            // Project-wide canvas font. Applies to every label drawn on the
+            // canvas (screen names, cabinet IDs, info bars, port/circuit
+            // labels, etc.). The picker is populated from the fonts installed
+            // on the machine running the app.
+            font: 'Arial'
         };
     }
 
@@ -9703,6 +9768,9 @@ class LEDRasterApp {
                 // Only apply to the current project when it is the startup default untitled project.
                 this.applyPreferencesToDefaultLayerIfMatch(false);
                 this.saveClientSideProperties();
+                // v0.8.8.x: font change is project-wide and affects every
+                // on-canvas label — repaint so the new font shows immediately.
+                if (window.canvasRenderer) window.canvasRenderer.render();
                 modal.style.display = 'none';
             });
         }
@@ -9793,6 +9861,10 @@ class LEDRasterApp {
         setVal('pref-color1', prefs.color1);
         setVal('pref-color2', prefs.color2);
         setVal('pref-border-color', prefs.borderColor);
+        // Hydrate the Fonts picker, then pull in the machine's installed fonts
+        // (refreshes the picker again when they arrive).
+        this._refreshFontPrefsUI(prefs.font || 'Arial');
+        this._loadSystemFonts();
         const prefDataPatternButtons = document.querySelectorAll('.pref-data-flow-pattern-btn');
         prefDataPatternButtons.forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-pattern') === (prefs.flowPattern || 'tl-h'));
@@ -9884,8 +9956,113 @@ class LEDRasterApp {
             powerVoltage: Number.isFinite(voltageVal) && voltageVal > 0 ? voltageVal : defaults.powerVoltage,
             powerAmperage: Number.isFinite(amperageVal) && amperageVal > 0 ? amperageVal : defaults.powerAmperage,
             powerWatts: readNum('pref-power-watts', defaults.powerWatts),
-            canvasGap: readNum('pref-canvas-gap', defaults.canvasGap)
+            canvasGap: readNum('pref-canvas-gap', defaults.canvasGap),
+            font: readStr('pref-font', defaults.font),
         };
+    }
+
+    // v0.8.8.x: web-safe font stack offered in the picker, plus user-added
+    // custom fonts from preferences. Any font name works as a CSS font-family.
+    _webSafeFonts() {
+        return ['Arial', 'Helvetica', 'Verdana', 'Tahoma', 'Trebuchet MS',
+            'Georgia', 'Times New Roman', 'Courier New', 'Impact', 'Monaco',
+            'system-ui'];
+    }
+    _allFontOptions() {
+        const system = Array.isArray(this._systemFonts) ? this._systemFonts : [];
+        // De-dupe while preserving order: web-safe quick-picks, then installed.
+        const seen = new Set();
+        const out = [];
+        [...this._webSafeFonts(), ...system].forEach(f => {
+            const name = (f || '').trim();
+            if (!name || seen.has(name.toLowerCase())) return;
+            seen.add(name.toLowerCase()); out.push(name);
+        });
+        return out;
+    }
+
+    // Fetch the list of fonts installed on the machine running the app (once).
+    // The server enumerates them; the browser can render any of them in canvas.
+    _loadSystemFonts() {
+        if (this._systemFontsLoaded) return Promise.resolve(this._systemFonts || []);
+        if (this._systemFontsPromise) return this._systemFontsPromise;
+        this._systemFontsPromise = fetch('/api/system-fonts')
+            .then(r => r.json())
+            .then(d => {
+                this._systemFonts = Array.isArray(d.fonts) ? d.fonts : [];
+                this._systemFontsLoaded = true;
+                // If the Preferences modal is open, refresh the picker so the
+                // installed fonts appear without the user reopening it.
+                const modal = document.getElementById('preferences-modal');
+                if (modal && modal.style.display !== 'none') {
+                    const sel = document.getElementById('pref-font');
+                    this._refreshFontPrefsUI(sel ? sel.value : undefined);
+                }
+                return this._systemFonts;
+            })
+            .catch(() => { this._systemFonts = []; this._systemFontsLoaded = true; return []; });
+        return this._systemFontsPromise;
+    }
+    // Active canvas-text font. Reads from prefs.font (one project-wide value).
+    getProjectFont() {
+        const prefs = this.getPreferences() || {};
+        return prefs.font || 'Arial';
+    }
+
+    // Grouped options for the Preferences font picker: a few recommended
+    // quick-picks, then every font installed on this machine.
+    _fontOptionGroups() {
+        const seen = new Set();
+        const dedupe = (arr) => {
+            const out = [];
+            (arr || []).forEach(f => {
+                const name = (f || '').trim();
+                if (!name || seen.has(name.toLowerCase())) return;
+                seen.add(name.toLowerCase()); out.push(name);
+            });
+            return out;
+        };
+        const web = dedupe(this._webSafeFonts());
+        const system = dedupe(Array.isArray(this._systemFonts) ? this._systemFonts : []);
+        return [
+            { label: 'Recommended', fonts: web },
+            { label: 'Installed on this computer', fonts: system },
+        ].filter(g => g.fonts.length);
+    }
+
+    // Flat list of every selectable font name (used for de-dupe/validation).
+    _fontOptionsForPicker() {
+        return this._fontOptionGroups().reduce((acc, g) => acc.concat(g.fonts), []);
+    }
+
+    _refreshFontPrefsUI(selectedFont) {
+        const sel = document.getElementById('pref-font');
+        if (sel) {
+            sel.innerHTML = '';
+            const groups = this._fontOptionGroups();
+            const opts = [];
+            const want = selectedFont || sel.value || 'Arial';
+            // If the saved font isn't in any group yet (e.g. installed fonts
+            // still loading), surface it at the top so the value sticks.
+            if (want && !groups.some(g => g.fonts.some(f => f.toLowerCase() === want.toLowerCase()))) {
+                const o = document.createElement('option');
+                o.value = want; o.textContent = want;
+                o.style.fontFamily = `"${want}", sans-serif`;
+                sel.appendChild(o); opts.push(want);
+            }
+            groups.forEach(g => {
+                const og = document.createElement('optgroup');
+                og.label = g.fonts.length > 30 ? `${g.label} (${g.fonts.length})` : g.label;
+                g.fonts.forEach(name => {
+                    const o = document.createElement('option');
+                    o.value = name; o.textContent = name;
+                    o.style.fontFamily = `"${name}", sans-serif`;
+                    og.appendChild(o); opts.push(name);
+                });
+                sel.appendChild(og);
+            });
+            if (opts.some(o => o.toLowerCase() === want.toLowerCase())) sel.value = want;
+        }
     }
 
     applyPreferencesToRaster(prefs) {
@@ -13843,6 +14020,7 @@ class LEDRasterApp {
             show_numbers: layer.show_numbers,
             number_size: layer.number_size,
             show_panel_borders: layer.show_panel_borders,
+            panel_border_width: layer.panel_border_width,
             show_circle_with_x: layer.show_circle_with_x,
             border_color: layer.border_color,
             border_width: layer.border_width,
@@ -14149,6 +14327,7 @@ class LEDRasterApp {
             show_numbers: this.clipboard.show_numbers,
             number_size: this.clipboard.number_size,
             show_panel_borders: this.clipboard.show_panel_borders,
+            panel_border_width: this.clipboard.panel_border_width,
             show_circle_with_x: this.clipboard.show_circle_with_x,
             border_color: this.clipboard.border_color,
             cabinetIdStyle: this.clipboard.cabinetIdStyle,
