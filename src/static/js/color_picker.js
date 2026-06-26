@@ -253,11 +253,13 @@
             this.tab = key;
             Object.keys(this._tabBtns).forEach(k => this._tabBtns[k].classList.toggle('active', k === key));
             if (key === 'sliders') this._renderSliders();
+            else if (key === 'wheel') this._renderWheel();
             else this._renderPlaceholder(key);
         },
 
         _renderPlaceholder(key) {
             this._controls = [];
+            this._wheel = null;
             const names = { wheel: 'Color Wheel', palettes: 'Color Palettes', image: 'Image Palettes', pencils: 'Pencils' };
             this._body.innerHTML = '<div class="lrd-cw-placeholder">' + (names[key] || key) +
                 '<br>coming in a later update.</div>';
@@ -265,6 +267,7 @@
 
         // ── Sliders tab ────────────────────────────────────────────────
         _renderSliders() {
+            this._wheel = null;
             this._body.innerHTML = '';
             // Mode row
             const moderow = document.createElement('div');
@@ -393,8 +396,120 @@
             }
             if (!opts.keepCmyk) this.cmyk = rgbToCmyk(this.rgb.r, this.rgb.g, this.rgb.b);
             this._syncUI();
+            this._syncWheel();
             this.updateFooter();
             this.commit();
+        },
+
+        // ── Color Wheel tab ────────────────────────────────────────────
+        _renderWheel() {
+            this._controls = [];
+            this._body.innerHTML = '';
+            const D = 196;
+            const wrap = document.createElement('div');
+            wrap.className = 'lrd-cw-wheelwrap';
+            const wheel = document.createElement('div');
+            wheel.className = 'lrd-cw-wheel';
+            wheel.style.width = D + 'px';
+            wheel.style.height = D + 'px';
+            const canvas = document.createElement('canvas');
+            canvas.width = D; canvas.height = D;
+            canvas.className = 'lrd-cw-wheel-canvas';
+            this._drawWheel(canvas, D);
+            const darken = document.createElement('div');
+            darken.className = 'lrd-cw-wheel-darken';
+            const marker = document.createElement('div');
+            marker.className = 'lrd-cw-wheel-marker';
+            wheel.appendChild(canvas);
+            wheel.appendChild(darken);
+            wheel.appendChild(marker);
+            wrap.appendChild(wheel);
+
+            // Brightness slider (the wheel shows hue/saturation at full value;
+            // this controls value/brightness).
+            const brow = document.createElement('div');
+            brow.className = 'lrd-cw-slider';
+            const blab = document.createElement('div');
+            blab.className = 'lrd-cw-slabel'; blab.textContent = 'Brightness';
+            const srow = document.createElement('div'); srow.className = 'lrd-cw-srow';
+            const range = document.createElement('input');
+            range.type = 'range'; range.className = 'lrd-cw-range'; range.min = 0; range.max = 100;
+            const num = document.createElement('input');
+            num.type = 'number'; num.className = 'lrd-cw-num'; num.min = 0; num.max = 100;
+            srow.appendChild(range); srow.appendChild(num);
+            brow.appendChild(blab); brow.appendChild(srow);
+            wrap.appendChild(brow);
+            this._body.appendChild(wrap);
+
+            this._wheel = { wheel, canvas, darken, marker, range, num, D };
+
+            const pick = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const r = D / 2;
+                let dx = (e.clientX - rect.left) - r;
+                let dy = (e.clientY - rect.top) - r;
+                const dist = Math.hypot(dx, dy);
+                if (dist > r && dist > 0) { dx *= r / dist; dy *= r / dist; }
+                const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+                const sat = Math.min(100, Math.hypot(dx, dy) / r * 100);
+                this.hsv.h = hue; this.hsv.s = sat;
+                this.rgb = hsvToRgb(this.hsv.h, this.hsv.s, this.hsv.v);
+                this._afterRgbChange({ keepHsv: true });
+            };
+            wheel.addEventListener('mousedown', (e) => {
+                e.preventDefault(); pick(e);
+                const mm = (ev) => pick(ev);
+                const mu = () => { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+                document.addEventListener('mousemove', mm);
+                document.addEventListener('mouseup', mu);
+            });
+            const setV = (v) => {
+                if (!Number.isFinite(v)) return;
+                this.hsv.v = clamp(v, 0, 100);
+                this.rgb = hsvToRgb(this.hsv.h, this.hsv.s, this.hsv.v);
+                this._afterRgbChange({ keepHsv: true });
+            };
+            range.addEventListener('input', () => setV(Number(range.value)));
+            num.addEventListener('input', () => setV(Number(num.value)));
+
+            this._syncWheel();
+        },
+
+        // Paint the hue/saturation wheel at full brightness once; the darken
+        // overlay applies the current value, so brightness changes don't redraw.
+        _drawWheel(canvas, D) {
+            const ctx = canvas.getContext('2d');
+            const r = D / 2;
+            const img = ctx.createImageData(D, D);
+            const data = img.data;
+            for (let y = 0; y < D; y++) {
+                for (let x = 0; x < D; x++) {
+                    const dx = x - r, dy = y - r;
+                    const dist = Math.hypot(dx, dy);
+                    const i = (y * D + x) * 4;
+                    if (dist > r) { data[i + 3] = 0; continue; }
+                    const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+                    const c = hsvToRgb(hue, Math.min(1, dist / r) * 100, 100);
+                    data[i] = c.r; data[i + 1] = c.g; data[i + 2] = c.b;
+                    // Soften the outer edge by a pixel to avoid a jagged rim.
+                    data[i + 3] = dist > r - 1 ? Math.round(255 * (r - dist)) : 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+        },
+
+        _syncWheel() {
+            const w = this._wheel;
+            if (!w) return;
+            const r = w.D / 2;
+            w.darken.style.opacity = String(1 - this.hsv.v / 100);
+            const rad = this.hsv.h * Math.PI / 180;
+            const dist = this.hsv.s / 100 * r;
+            w.marker.style.left = (r + dist * Math.cos(rad)) + 'px';
+            w.marker.style.top = (r + dist * Math.sin(rad)) + 'px';
+            w.range.style.background = 'linear-gradient(to right, #000, ' + rgbStr(hsvToRgb(this.hsv.h, this.hsv.s, 100)) + ')';
+            if (document.activeElement !== w.range) w.range.value = Math.round(this.hsv.v);
+            if (document.activeElement !== w.num) w.num.value = Math.round(this.hsv.v);
         },
 
         // Push current state into the visible controls without disturbing the
