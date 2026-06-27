@@ -159,6 +159,74 @@ label, .info-row label, .checkbox-row label { color:var(--mono-dim) !important; 
 /* ---- status bar ---- */
 #status-bar, #status-bar * { color:var(--mono-dim) !important; font-family:var(--font-ui) !important; }
 
+/* ════════════════════════════════════════════════════════════════════
+   PRO-TOOL CONTROL LANGUAGE  (segmented controls, toggles, density)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* kill any stray inline/legacy blue accents → monochrome */
+[style*="#4A90E2"], [style*="#4a90e2"], [style*="rgb(74, 144, 226)"],
+[style*="#357ABD"], [style*="#4a8df0"] { color:var(--mono-white) !important; }
+
+/* segmented controls: flush buttons, white-filled active (On/Off, Front/Back,
+   Organized/Max, render modes, etc.) */
+.perspective-btn, .mapping-mode-btn, .flow-pattern-btn, .pref-flow-pattern-btn,
+.power-flow-pattern-btn, .color-mode-btn, .toggle-btn {
+  font-family:var(--font-ui) !important; font-weight:500 !important;
+  background:var(--mono-raise) !important; color:var(--mono-dim) !important;
+  border:1px solid var(--mono-hair) !important; border-radius:0 !important;
+  transition:background .12s, color .12s, border-color .12s;
+}
+.perspective-btn + .perspective-btn, .mapping-mode-btn + .mapping-mode-btn,
+.color-mode-btn + .color-mode-btn { margin-left:-1px !important; }
+.perspective-btn:first-of-type, .mapping-mode-btn:first-of-type, .color-mode-btn:first-of-type {
+  border-top-left-radius:7px !important; border-bottom-left-radius:7px !important; }
+.perspective-btn:last-of-type, .mapping-mode-btn:last-of-type, .color-mode-btn:last-of-type {
+  border-top-right-radius:7px !important; border-bottom-right-radius:7px !important; }
+.perspective-btn:hover, .mapping-mode-btn:hover, .flow-pattern-btn:hover,
+.color-mode-btn:hover { color:var(--mono-text) !important; background:var(--mono-raise-2) !important; }
+.perspective-btn.active, .mapping-mode-btn.active, .color-mode-btn.active,
+.pref-flow-pattern-btn.active, .power-flow-pattern-btn.active {
+  background:var(--mono-white) !important; color:var(--mono-on-white) !important;
+  border-color:var(--mono-white) !important; position:relative; z-index:1;
+  box-shadow:0 0 18px -8px rgba(255,255,255,0.5) !important;
+}
+/* flow-pattern icon grid: white outline + glow on active */
+.flow-pattern-btn { border-radius:7px !important; }
+.flow-pattern-btn.active {
+  background:var(--mono-raise-2) !important; border-color:var(--mono-white) !important;
+  box-shadow:inset 0 0 0 1px var(--mono-white), 0 0 20px -8px rgba(255,255,255,0.6) !important;
+}
+.flow-pattern-btn.active * { stroke:var(--mono-white) !important; color:var(--mono-white) !important; }
+
+/* checkboxes → sliding toggle switches */
+input[type="checkbox"] {
+  -webkit-appearance:none; appearance:none; cursor:pointer;
+  width:34px !important; height:19px !important; border-radius:999px !important;
+  background-color:var(--mono-raise-2) !important; border:1px solid var(--mono-hair) !important;
+  background-image:radial-gradient(circle 6.5px at 10px center, #c9ccd0 99%, transparent 100%) !important;
+  background-repeat:no-repeat !important; vertical-align:middle; transition:background-color .15s, background-position .15s;
+}
+input[type="checkbox"]:checked {
+  background-color:var(--mono-white) !important; border-color:var(--mono-white) !important;
+  background-image:radial-gradient(circle 6.5px at 24px center, #0a0a0a 99%, transparent 100%) !important;
+}
+
+/* denser attribute rows + technical micro-labels */
+.info-row, .checkbox-row { padding-top:5px !important; padding-bottom:5px !important; }
+.info-row > label, .panel-content label, .sect-h, .section-label {
+  text-transform:uppercase; letter-spacing:0.1em; font-size:10.5px !important;
+  color:var(--mono-faint) !important; font-weight:500 !important;
+}
+/* recessed sub-panels (Port Capacity etc.) */
+.panel .panel, .sub-panel, .port-capacity, .capacity-box {
+  background:rgba(0,0,0,0.28) !important; border:1px solid var(--mono-hair) !important;
+  border-radius:10px !important;
+}
+/* numeric readouts → mono, technical */
+.readout, .stat-value, .info-row .val, .capacity-value, .ports-value {
+  font-family:var(--font-display) !important; color:var(--mono-text) !important;
+}
+
 /* ---- scrollbars ---- */
 ::-webkit-scrollbar { width:10px; height:10px; }
 ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:999px; border:2px solid transparent; background-clip:content-box; }
