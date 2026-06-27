@@ -196,6 +196,21 @@ Open an issue at [github.com/kman1898/LED-Raster-Designer/issues](../../issues).
 
 ---
 
+## Versioning & Releases
+
+Versions follow `vMAJOR.MINOR.PATCH` (e.g. `v0.8.11`). PATCH is a fix or small
+change; MINOR is new features; MAJOR is reserved for the 1.0 milestone and
+beyond. The version string is kept in sync across `README.md`, `src/VERSION.txt`,
+`src/templates/index.html`, and `src/led_raster_designer.spec`.
+
+Every **public** release is git-tagged `vX.Y.Z` and gets release notes drawn from
+the matching `src/VERSION.txt` entry — never the auto-generated PR list alone, so
+the GitHub Releases page reads consistently. Internal test builds are produced via
+the workflow's manual dispatch and are **not** tagged, so the public release
+history has no gaps.
+
+---
+
 ## Contact
 
 For questions or feedback during beta testing, please contact the development team.
