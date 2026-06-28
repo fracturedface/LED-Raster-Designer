@@ -191,7 +191,7 @@
     // ── The full Colors window (Sliders tab) ───────────────────────────
     const FullPanel = {
         el: null, target: null,
-        tab: 'sliders', mode: 'rgb',
+        tab: 'wheel', mode: 'rgb',
         rgb: { r: 0, g: 0, b: 0 },
         hsv: { h: 0, s: 0, v: 0 },
         cmyk: { c: 0, m: 0, y: 0, k: 0 },
@@ -940,10 +940,10 @@
                 if (t && t.matches && t.matches('input[type="color"]')) {
                     e.preventDefault();
                     e.stopPropagation();
-                    // If the full Colors window is already open, just retarget it;
-                    // otherwise show the compact swatch popover.
-                    if (FullPanel.isOpen()) FullPanel.open(t, t.value);
-                    else this.openFor(t);
+                    // Open the full Colors window directly (defaults to the wheel
+                    // tab) so a color wheel pops up on the first click, instead of
+                    // the compact swatch popover.
+                    FullPanel.open(t, t.value);
                 }
             }, true);
             // Close on outside click / Escape / scroll / resize.
