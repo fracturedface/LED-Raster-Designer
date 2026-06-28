@@ -1976,6 +1976,11 @@ class LEDRasterApp {
         this.currentLayer.weight_unit = prefs.weightUnit || 'kg';
         this.currentLayer.number_size = prefs.cabinetFontSize;
         this.currentLayer.labelsFontSize = prefs.labelFontSize;
+        // The screen name on the other tabs uses the same default size as the
+        // Pixel Map label font size, so the name is consistent across tabs.
+        this.currentLayer.screenNameSizeCabinet = prefs.labelFontSize;
+        this.currentLayer.screenNameSizeDataFlow = prefs.labelFontSize;
+        this.currentLayer.screenNameSizePower = prefs.labelFontSize;
         this.currentLayer.color1 = this.hexToRgb(prefs.color1);
         this.currentLayer.color2 = this.hexToRgb(prefs.color2);
         this.currentLayer.border_color = prefs.borderColor;
@@ -5791,10 +5796,11 @@ class LEDRasterApp {
         layer.portLabelOverridesReturn = {};
         layer.customPortPaths = {};
         layer.customPortIndex = 1;
-        // Screen name sizes default to 30 on all tabs
-        layer.screenNameSizeCabinet = 30;
-        layer.screenNameSizeDataFlow = 30;
-        layer.screenNameSizePower = 30;
+        // Screen name size on the other tabs follows the label font size default
+        // so the screen name is the same size across all tabs.
+        layer.screenNameSizeCabinet = prefs.labelFontSize || 30;
+        layer.screenNameSizeDataFlow = prefs.labelFontSize || 30;
+        layer.screenNameSizePower = prefs.labelFontSize || 30;
         // Cabinet ID number size default to 30
         layer.number_size = 30;
         layer.randomDataColors = false;
