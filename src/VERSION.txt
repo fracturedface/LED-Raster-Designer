@@ -3,88 +3,53 @@ LED RASTER DESIGNER - VERSION HISTORY
 
 v0.8.12.6 - June 28, 2026
 ----------------------------
-Consistent screen-name size across tabs (design preview).
+New "Studio" interface, new logo, and several fixes.
 
-- FIX: The screen name on the Cabinet ID, Data, and Power tabs now
-  defaults to the same size as the Pixel Map label font size, instead of
-  a hardcoded 30 that ignored the "Default Pixel Map Label Font Size"
-  preference. Applies to new/refreshed screens; existing saved screens
-  keep their current sizes.
+A full visual redesign plus a real brand mark, with usability and
+calculation fixes along the way.
 
-v0.8.12.5 - June 28, 2026
-----------------------------
-New app logo (design preview).
+INTERFACE — the new "Studio" look
+- REDESIGN: A complete reskin in a desktop, docked-panel style — beveled
+  neutral-gray surfaces, titled panels, a system UI typeface, and a red
+  identity accent. Replaces the old flat dark-blue look.
+- Selectable accent color in Preferences -> Appearance (red, blue,
+  green, amber, purple, teal); the choice persists across sessions.
+- Distinct desktop-style view tabs, chunky tactile sliders, and
+  segmented toggle controls, with a legibility pass throughout (brighter
+  text, clearer surface separation, readable Preferences cards).
 
+LOGO
 - BRANDING: New "Raster Grid" logo — an LED cabinet of pixels — replaces
-  the stand-in lightbulb and floppy-disk icons. It now appears in the
+  the stand-in lightbulb and floppy-disk icons. It appears in the
   toolbar, the browser tab (favicon), the About dialog, the macOS menu
   bar, the Windows tray, and as the app icon (.app / .exe / installer).
 
-v0.8.12.4 - June 28, 2026
-----------------------------
-Sidebar usability + Pixel Map cleanup (design preview).
-
-- FEATURE: Resizable side panels. Drag the inner edge of either sidebar
-  to widen or narrow it (per-side width persists). Works alongside the
+SIDEBARS
+- FEATURE: Resizable side panels — drag the inner edge of either sidebar
+  to widen or narrow it; the width persists per side. Works alongside the
   existing collapse toggle.
-- CHANGE: Denser Screens/layer cards — less wasted vertical space, so
-  more layers fit without scrolling.
-- CHANGE: On Pixel Map, Border, Circle with X, and Border Color moved to
-  the bottom of the Labels section.
-- FIX: In a narrow panel, checkboxes no longer shrink to nothing; the
-  Layer Size (ft) "Fractions" toggle now wraps to its own line instead
-  of squeezing the checkbox out.
+- Denser Screens/layer cards so more layers fit without scrolling.
 
-v0.8.12.3 - June 28, 2026
-----------------------------
-Power/Data totals fix (design preview).
+COLOR
+- Canvas group headers now take on the canvas's own identity color across
+  the whole header (the small color dot is removed); the active canvas is
+  marked with a white outline.
+- Clicking any color control opens the picker directly — the custom color
+  wheel on Windows, the native OS picker on macOS.
 
-- FIX: On the Data and Power tabs, the per-canvas Totals now regroup by
-  the show-canvas as soon as you switch to the tab. Previously a canvas
-  whose screens live on another canvas's processor (via show_canvas_id)
-  could read 0 while a single canvas showed the whole project total,
-  because the totals kept the previous tab's grouping.
-
-v0.8.12.2 - June 28, 2026
-----------------------------
-Studio theme: canvas color tweaks (design preview).
-
-- CHANGE: Canvas group headers take on the canvas's own identity color
-  across the whole header; the small color dot is removed. The active
-  canvas is marked with a white inner outline.
-- CHANGE: A canvas's "Change Color…" now opens the color picker directly
-  (one click) and applies live, following the same rule as every other
-  color control: the native OS picker on macOS, the custom wheel on PC.
-
-v0.8.12.1 - June 28, 2026
-----------------------------
-Studio theme refinements (design preview).
-
-- CHANGE: Canvas group headers now take on the canvas's own identity
-  color across the whole header; the small color dot is removed. The
-  active canvas is marked with a white inner outline.
-- CHANGE: Clearer, separated desktop-style view tabs and a legibility
-  pass (brighter text, raised screen tiles, readable Preferences cards).
-- FIX (internal): raised the Flask-SocketIO requirement floor so the
-  websocket test suite no longer reports false failures on older installs.
-
-v0.8.12.0 - June 27, 2026
-----------------------------
-New "Studio" interface theme (design preview).
-
-- REDESIGN: A full visual reskin in a standard image editors / desktop docked-panel
-  style — beveled neutral-gray surfaces, titled panels, system UI type,
-  and a red identity accent. Replaces the previous flat dark-blue look.
-- FEATURE: Accent color is selectable in Preferences -> Appearance
-  (red, blue, green, amber, purple, teal); the choice persists.
-- CHANGE: Clicking any canvas color opens the color picker directly on
-  the Color Wheel tab.
-- CHANGE: Distinct desktop-style view tabs, chunky tactile sliders,
-  segmented toggle controls, and a legibility pass (brighter text tiers,
-  clearer surface separation, readable screen sub-info).
-- The theme is a cosmetic override layer (static/css/theme.css +
-  static/js/theme.js); functionality is unchanged. This is a test build
-  on the reskin branch.
+FIXES
+- Power / Data per-canvas Totals now regroup by the show-canvas the
+  moment you switch to the tab. Previously a canvas whose screens live on
+  another canvas's processor could read 0 while one canvas showed the
+  whole project total.
+- The screen name on the Cabinet ID, Data, and Power tabs now defaults to
+  the same size as the Pixel Map label font size (was a hardcoded 30 that
+  ignored the label-font-size preference). Applies to new/refreshed
+  screens; existing saved screens keep their sizes.
+- On Pixel Map, Border, Circle with X, and Border Color moved to the
+  bottom of the Labels section.
+- In a narrow panel, checkboxes no longer shrink away; the Layer Size (ft)
+  "Fractions" toggle wraps to its own line instead.
 
 v0.8.11.1 - June 26, 2026
 ----------------------------
