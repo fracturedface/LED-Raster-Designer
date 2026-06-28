@@ -1,6 +1,24 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.0 - June 27, 2026
+----------------------------
+New "Studio" interface theme (design preview).
+
+- REDESIGN: A full visual reskin in a standard image editors / desktop docked-panel
+  style — beveled neutral-gray surfaces, titled panels, system UI type,
+  and a red identity accent. Replaces the previous flat dark-blue look.
+- FEATURE: Accent color is selectable in Preferences -> Appearance
+  (red, blue, green, amber, purple, teal); the choice persists.
+- CHANGE: Clicking any canvas color opens the color picker directly on
+  the Color Wheel tab.
+- CHANGE: Distinct desktop-style view tabs, chunky tactile sliders,
+  segmented toggle controls, and a legibility pass (brighter text tiers,
+  clearer surface separation, readable screen sub-info).
+- The theme is a cosmetic override layer (static/css/theme.css +
+  static/js/theme.js); functionality is unchanged. This is a test build
+  on the reskin branch.
+
 v0.8.11.1 - June 26, 2026
 ----------------------------
 Color picker: fix activation over the network.
