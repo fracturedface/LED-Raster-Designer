@@ -2370,6 +2370,14 @@ class LEDRasterApp {
                 if (typeof this.renderLayers === 'function') {
                     try { this.renderLayers(); } catch (_) {}
                 }
+                // Recompute the Data/Power Totals now that the view (and thus
+                // the show-canvas grouping) has changed. Without this the
+                // per-canvas totals keep the previous tab's grouping and
+                // collapse every screen onto its processor canvas (canvas_id),
+                // so canvases that only host screens via show_canvas_id read 0.
+                if (typeof this.refreshTotalsSidebar === 'function') {
+                    try { this.refreshTotalsSidebar(); } catch (_) {}
+                }
                 sendClientLog('tab_switch', {
                     tab: mode,
                     currentLayer: this.currentLayer ? { id: this.currentLayer.id, name: this.currentLayer.name } : null,
