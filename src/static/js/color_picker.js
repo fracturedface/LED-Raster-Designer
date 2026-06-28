@@ -216,10 +216,12 @@
             bar.className = 'lrd-cw-titlebar';
             const lights = document.createElement('div');
             lights.className = 'lrd-cw-lights';
-            ['red', 'yellow', 'green'].forEach(c => {
+            // Single red close button (desktop style — no mac minimize/maximize).
+            ['red'].forEach(c => {
                 const d = document.createElement('span');
                 d.className = 'lrd-cw-light ' + c;
-                if (c === 'red') d.addEventListener('click', () => this.close());
+                d.title = 'Close';
+                d.addEventListener('click', () => this.close());
                 lights.appendChild(d);
             });
             const title = document.createElement('div');
