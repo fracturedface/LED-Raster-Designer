@@ -3,15 +3,12 @@ LED RASTER DESIGNER - VERSION HISTORY
 
 v0.8.12.6 - June 28, 2026
 ----------------------------
-New "Studio" interface, new logo, and several fixes.
+Redesigned interface, new logo, and several fixes.
 
-A full visual redesign plus a real brand mark, with usability and
-calculation fixes along the way.
-
-INTERFACE — the new "Studio" look
-- REDESIGN: A complete reskin in a desktop, docked-panel style — beveled
+INTERFACE
+- The interface has been redesigned in a desktop, docked-panel style:
   neutral-gray surfaces, titled panels, a system UI typeface, and a red
-  identity accent. Replaces the old flat dark-blue look.
+  accent.
 - Selectable accent color in Preferences -> Appearance (red, blue,
   green, amber, purple, teal); the choice persists across sessions.
 - Distinct desktop-style view tabs, chunky tactile sliders, and
