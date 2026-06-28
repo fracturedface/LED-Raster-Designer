@@ -11,16 +11,18 @@
    ────────────────────────────────────────────────────────────────────── */
 :root {
   --ps-canvas:#1b1b1b;
-  --ps-panel:#2b2b2b;
+  --ps-panel:#2e2e2e;
   --ps-panel-2:#262626;
-  --ps-titlebar:#3a3a3a;
-  --ps-control:#3c3c3c;
-  --ps-control-hi:#4d4d4d;
-  --ps-inset:#232323;
-  --ps-dark:#151515;
-  --ps-text:#dcdcdc;
-  --ps-dim:#9a9a9a;
-  --ps-faint:#6f6f6f;
+  --ps-tile:#3c3c3c;          /* raised rows/cards — clearly above panel */
+  --ps-tile-hi:#454545;
+  --ps-titlebar:#3d3d3d;
+  --ps-control:#404040;
+  --ps-control-hi:#545454;
+  --ps-inset:#1c1c1c;          /* recessed fields — clearly below panel */
+  --ps-dark:#131313;
+  --ps-text:#f0f0f0;           /* primary — brighter */
+  --ps-dim:#c0c0c0;            /* secondary — much brighter for legibility */
+  --ps-faint:#969696;          /* tertiary — brighter */
   /* accent (themeable at runtime) */
   --ps-accent:#e22330;
   --ps-accent-hi:#ef3340;
@@ -92,7 +94,7 @@ body, #app {
   content:'\25BE'; position:absolute; right:9px; top:50%; transform:translateY(-50%);
   color:var(--ps-faint); font-size:10px; pointer-events:none; }
 .info-row > label, .panel-content label, .checkbox-row label {
-  color:var(--ps-dim) !important; text-transform:uppercase; font-size:10px !important; letter-spacing:0.04em; }
+  color:var(--ps-dim) !important; text-transform:uppercase; font-size:11px !important; letter-spacing:0.04em; }
 
 /* ---- inset inputs ---- */
 input[type="text"], input[type="number"], select, .info-select,
@@ -133,10 +135,13 @@ input[type="radio"] { accent-color:var(--ps-accent) !important; }
   border-color:var(--ps-accent-deep) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,0.2) !important; }
 
 /* ---- screens / layers ---- */
-.layer-item, .canvas-group { background:var(--ps-panel-2) !important; border-color:var(--ps-dark) !important; }
-.layer-item { background:#343434 !important; border:1px solid #1b1b1b !important;
-  box-shadow:inset 0 1px 0 #404040, 0 1px 0 #1a1a1a !important; border-radius:3px !important; }
-.layer-item:hover { background:#3d3d3d !important; }
+.canvas-group { background:var(--ps-panel-2) !important; border-color:var(--ps-dark) !important; }
+.layer-item { background:var(--ps-tile) !important; border:1px solid var(--ps-dark) !important;
+  box-shadow:inset 0 1px 0 var(--ps-tile-hi), 0 1px 3px rgba(0,0,0,0.45) !important; border-radius:4px !important; }
+.layer-item:hover { background:var(--ps-tile-hi) !important; }
+/* unselected screen sub-info: legible, not muddy */
+.layer-item .layer-info, .layer-item small, .layer-item [class*="info"],
+.layer-item [class*="size"], .layer-item [class*="meta"] { color:#c8c8c8 !important; }
 .layer-item.active { background:linear-gradient(var(--ps-accent-hi),var(--ps-accent-deep)) !important;
   border-color:var(--ps-accent-deep) !important; }
 .layer-item.active, .layer-item.active * { color:var(--ps-on-accent) !important; }
@@ -199,6 +204,27 @@ input[type="radio"] { accent-color:var(--ps-accent) !important; }
 .ps-accent-sw.selected::after { content:'\2713'; position:absolute; inset:0; display:flex; align-items:center;
   justify-content:center; color:#fff; font-size:13px; text-shadow:0 1px 2px rgba(0,0,0,0.6); }
 .ps-accent-label { font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ps-dim); margin-left:4px; }
+
+/* ════════ LEGIBILITY PASS ════════ */
+/* Preferences & modals: bright setting labels, readable helper text, clear fields */
+.modal-content, #preferences-modal, #export-modal { color:var(--ps-text) !important; }
+#preferences-modal label, .prefs-grid label, .prefs-row label, .prefs-group label,
+#export-modal label, .export-view-label {
+  color:var(--ps-text) !important; font-weight:500 !important; text-transform:none !important; font-size:13px !important; letter-spacing:0 !important; }
+/* helper / descriptive sub-text → readable gray, not muddy */
+#preferences-modal small, #preferences-modal p, #preferences-modal .hint, #preferences-modal .desc,
+.modal-content small, .modal-content p, .field-hint, .help-text, .pref-hint {
+  color:var(--ps-dim) !important; }
+/* group/section blocks in prefs: lift off the panel for separation */
+.prefs-grid > div, .prefs-group, .export-views {
+  background:var(--ps-panel-2) !important; border:1px solid var(--ps-dark) !important; border-radius:4px !important; }
+/* fields stay recessed + bright text so they read against the lifted blocks */
+#preferences-modal input, #preferences-modal select, #export-modal input, #export-modal select {
+  background:var(--ps-inset) !important; color:var(--ps-text) !important; }
+
+/* dim helper lines in the side panels (e.g. "Click & drag the screen name…") */
+#left-sidebar .hint, #left-sidebar small, #left-sidebar .help-text,
+#left-sidebar p, .panel-content .hint, .panel-content small { color:var(--ps-faint) !important; }
 
 /* ---- legacy blue cleanup ---- */
 [style*="#4A90E2"], [style*="#4a90e2"], [style*="rgb(74, 144, 226)"] { color:var(--ps-text) !important; }
