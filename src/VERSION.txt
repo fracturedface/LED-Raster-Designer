@@ -1,6 +1,16 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.6 - June 28, 2026
+----------------------------
+Consistent screen-name size across tabs (design preview).
+
+- FIX: The screen name on the Cabinet ID, Data, and Power tabs now
+  defaults to the same size as the Pixel Map label font size, instead of
+  a hardcoded 30 that ignored the "Default Pixel Map Label Font Size"
+  preference. Applies to new/refreshed screens; existing saved screens
+  keep their current sizes.
+
 v0.8.12.5 - June 28, 2026
 ----------------------------
 New app logo (design preview).
