@@ -1,6 +1,18 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.1 - June 28, 2026
+----------------------------
+Studio theme refinements (design preview).
+
+- CHANGE: Canvas group headers now take on the canvas's own identity
+  color across the whole header; the small color dot is removed. The
+  active canvas is marked with a white inner outline.
+- CHANGE: Clearer, separated desktop-style view tabs and a legibility
+  pass (brighter text, raised screen tiles, readable Preferences cards).
+- FIX (internal): raised the Flask-SocketIO requirement floor so the
+  websocket test suite no longer reports false failures on older installs.
+
 v0.8.12.0 - June 27, 2026
 ----------------------------
 New "Studio" interface theme (design preview).
