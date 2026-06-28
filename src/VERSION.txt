@@ -1,6 +1,15 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.5 - June 28, 2026
+----------------------------
+New app logo (design preview).
+
+- BRANDING: New "Raster Grid" logo — an LED cabinet of pixels — replaces
+  the stand-in lightbulb and floppy-disk icons. It now appears in the
+  toolbar, the browser tab (favicon), the About dialog, the macOS menu
+  bar, the Windows tray, and as the app icon (.app / .exe / installer).
+
 v0.8.12.4 - June 28, 2026
 ----------------------------
 Sidebar usability + Pixel Map cleanup (design preview).
