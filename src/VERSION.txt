@@ -1,6 +1,21 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.4 - June 28, 2026
+----------------------------
+Sidebar usability + Pixel Map cleanup (design preview).
+
+- FEATURE: Resizable side panels. Drag the inner edge of either sidebar
+  to widen or narrow it (per-side width persists). Works alongside the
+  existing collapse toggle.
+- CHANGE: Denser Screens/layer cards — less wasted vertical space, so
+  more layers fit without scrolling.
+- CHANGE: On Pixel Map, Border, Circle with X, and Border Color moved to
+  the bottom of the Labels section.
+- FIX: In a narrow panel, checkboxes no longer shrink to nothing; the
+  Layer Size (ft) "Fractions" toggle now wraps to its own line instead
+  of squeezing the checkbox out.
+
 v0.8.12.3 - June 28, 2026
 ----------------------------
 Power/Data totals fix (design preview).
