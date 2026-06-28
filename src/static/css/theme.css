@@ -72,12 +72,21 @@ body, #app {
 .btn-primary:hover, #btn-export:hover { filter:brightness(1.08); }
 
 /* ---- view tabs ---- */
-#view-tabs { background:var(--ps-panel-2) !important; border-bottom:1px solid var(--ps-dark) !important; }
-.view-tab { color:var(--ps-dim) !important; font-family:var(--font-ps) !important; font-weight:400 !important;
-  background:transparent !important; border:none !important; border-radius:0 !important; }
-.view-tab:hover { color:var(--ps-text) !important; background:rgba(255,255,255,0.04) !important; }
-.view-tab.active { color:#fff !important; background:var(--ps-panel) !important;
-  border-bottom:2px solid var(--ps-accent) !important; }
+#view-tabs { background:var(--ps-panel-2) !important; border-bottom:1px solid var(--ps-dark) !important;
+  padding:5px 8px 0 8px !important; align-items:flex-end !important; }
+.view-tab {
+  color:var(--ps-dim) !important; font-family:var(--font-ps) !important; font-weight:500 !important;
+  background:linear-gradient(#363636,#2c2c2c) !important;
+  border:1px solid var(--ps-dark) !important; border-bottom:none !important;
+  border-radius:6px 6px 0 0 !important; padding:8px 18px !important; margin:0 3px 0 0 !important;
+  box-shadow:inset 0 1px 0 #444 !important; position:relative; }
+.view-tab:hover { color:var(--ps-text) !important; background:linear-gradient(#424242,#373737) !important; }
+.view-tab.active {
+  color:#fff !important; background:var(--ps-panel) !important;
+  border:1px solid var(--ps-dark) !important; border-bottom:none !important;
+  border-top:2px solid var(--ps-accent) !important;
+  box-shadow:0 -2px 6px rgba(0,0,0,0.25) !important; z-index:2; margin-bottom:-1px !important;
+  padding-bottom:9px !important; }
 
 /* ---- docked titled panels ---- */
 #left-sidebar, #right-sidebar { background:var(--ps-panel) !important; border-color:var(--ps-dark) !important; }
