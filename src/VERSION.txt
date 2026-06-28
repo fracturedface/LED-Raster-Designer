@@ -1,6 +1,17 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.2 - June 28, 2026
+----------------------------
+Studio theme: canvas color tweaks (design preview).
+
+- CHANGE: Canvas group headers take on the canvas's own identity color
+  across the whole header; the small color dot is removed. The active
+  canvas is marked with a white inner outline.
+- CHANGE: A canvas's "Change Color…" now opens the color picker directly
+  (one click) and applies live, following the same rule as every other
+  color control: the native OS picker on macOS, the custom wheel on PC.
+
 v0.8.12.1 - June 28, 2026
 ----------------------------
 Studio theme refinements (design preview).
