@@ -112,3 +112,90 @@
   try { new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true }); }
   catch (e) { /* ignore */ }
 })();
+
+/* ──────────────────────────────────────────────────────────────────────
+   Resizable sidebars — drag the inner edge of either sidebar to widen or
+   narrow it. Width persists per side in localStorage and is clamped so it
+   can't swallow the canvas. Coexists with the existing collapse toggle.
+   ────────────────────────────────────────────────────────────────────── */
+(function () {
+  'use strict';
+  var MIN = 180, MAX = 560, KEY = { left: 'lrd_left_w', right: 'lrd_right_w' };
+  function clamp(w) { return Math.max(MIN, Math.min(MAX, Math.round(w))); }
+  function sb(side) { return document.getElementById(side === 'left' ? 'left-sidebar' : 'right-sidebar'); }
+  function cssVar(side) { return side === 'left' ? '--lrd-left-w' : '--lrd-right-w'; }
+  function setW(side, w) { document.documentElement.style.setProperty(cssVar(side), clamp(w) + 'px'); }
+  function applySaved() {
+    ['left', 'right'].forEach(function (side) {
+      try { var v = parseInt(localStorage.getItem(KEY[side]), 10); if (v) setW(side, v); } catch (e) { /* ignore */ }
+    });
+  }
+
+  var handles = {}, raf;
+  function reposition() {
+    ['left', 'right'].forEach(function (side) {
+      var h = handles[side], s = sb(side); if (!h || !s) return;
+      if (s.classList.contains('collapsed') || s.offsetWidth <= 1) { h.style.display = 'none'; return; }
+      var r = s.getBoundingClientRect();
+      h.style.display = 'block';
+      h.style.top = r.top + 'px';
+      h.style.height = r.height + 'px';
+      h.style.left = (side === 'left' ? r.right - 3 : r.left - 4) + 'px';
+    });
+  }
+  function repaint() { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(reposition); }
+
+  function startDrag(side, h) {
+    return function (e) {
+      e.preventDefault();
+      var s = sb(side); if (!s) return;
+      var app = document.getElementById('app');
+      if (app) app.classList.add('lrd-resizing');
+      h.classList.add('lrd-dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      function move(ev) {
+        var r = s.getBoundingClientRect();
+        var w = side === 'left' ? (ev.clientX - r.left) : (window.innerWidth - ev.clientX);
+        setW(side, w); repaint();
+      }
+      function up() {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        h.classList.remove('lrd-dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        if (app) app.classList.remove('lrd-resizing');
+        var cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(cssVar(side)), 10) || 260;
+        try { localStorage.setItem(KEY[side], clamp(cur)); } catch (e) { /* ignore */ }
+      }
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    };
+  }
+
+  function init() {
+    if (!sb('left') && !sb('right')) return;
+    applySaved();
+    ['left', 'right'].forEach(function (side) {
+      var h = document.createElement('div');
+      h.className = 'lrd-resize-handle';
+      h.title = 'Drag to resize panel';
+      h.addEventListener('mousedown', startDrag(side, h));
+      document.body.appendChild(h);
+      handles[side] = h;
+      var s = sb(side);
+      if (s) { try { new MutationObserver(repaint).observe(s, { attributes: true, attributeFilter: ['class', 'style'] }); } catch (e) { /* ignore */ } }
+    });
+    reposition();
+    window.addEventListener('resize', repaint);
+    window.addEventListener('scroll', repaint, true);
+    ['left-sidebar-toggle', 'right-sidebar-toggle'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (b) b.addEventListener('click', function () { setTimeout(reposition, 220); });
+    });
+    setInterval(reposition, 1200);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
