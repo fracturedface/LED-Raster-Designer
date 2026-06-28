@@ -13125,72 +13125,30 @@ class LEDRasterApp {
     }
 
     openCanvasColorPicker(canvas) {
+        // Clean up any stray popup from the previous implementation.
         document.querySelectorAll('.canvas-color-popup').forEach(el => el.remove());
-        const palette = ['#4A90E2', '#F5A623', '#7ED321', '#BD10E0',
-                         '#D0021B', '#50E3C2', '#F8E71C', '#9013FE'];
-        const popup = document.createElement('div');
-        popup.className = 'canvas-color-popup';
-        popup.innerHTML = `
-            <div class="canvas-color-swatches">
-                ${palette.map(c => `<button class="color-swatch" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
-            </div>
-            <div class="canvas-color-hex-row">
-                <input type="color" class="canvas-color-wheel" value="${canvas.color || '#4A90E2'}" title="Open color wheel">
-                <label>Hex:</label>
-                <input type="text" class="canvas-color-hex" value="${canvas.color || ''}" maxlength="7">
-                <button class="canvas-color-apply">Apply</button>
-            </div>
-        `;
-        document.body.appendChild(popup);
-        const anchor = document.querySelector(`.canvas-group[data-canvas-id="${canvas.id}"] .canvas-menu-btn`);
-        if (anchor) {
-            const r = anchor.getBoundingClientRect();
-            popup.style.position = 'fixed';
-            popup.style.top = `${r.bottom + 4}px`;
-            popup.style.left = `${Math.max(8, r.right - 200)}px`;
-            popup.style.zIndex = '12000';
-        }
-        const close = () => {
-            popup.remove();
-            document.removeEventListener('mousedown', onOutside, true);
-        };
-        const onOutside = (e) => {
-            if (popup.contains(e.target)) return;
-            // Keep the popup open while the user is in the color wheel / picker.
-            if (e.target.closest && e.target.closest('.lrd-cw-window, .lrd-cp-popover')) return;
-            close();
-        };
-        setTimeout(() => document.addEventListener('mousedown', onOutside, true), 0);
 
-        popup.querySelectorAll('.color-swatch').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.updateCanvas(canvas.id, { color: btn.dataset.color });
-                close();
-            });
-        });
-        popup.querySelector('.canvas-color-apply').addEventListener('click', (e) => {
-            e.stopPropagation();
-            const hex = popup.querySelector('.canvas-color-hex').value.trim();
-            if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-                this.updateCanvas(canvas.id, { color: hex });
-                close();
-            } else {
-                this._toast('Invalid hex color (expected #RRGGBB)', true);
-            }
-        });
-        // Color-wheel swatch: opens the wheel picker (custom on Windows, native
-        // on macOS) and applies the chosen color to the canvas live.
-        const wheel = popup.querySelector('.canvas-color-wheel');
-        if (wheel) {
-            const onWheel = (e) => {
-                const v = (e.target.value || '').toLowerCase();
-                const hexField = popup.querySelector('.canvas-color-hex');
-                if (hexField) hexField.value = v;
-                this.updateCanvas(canvas.id, { color: v });
-            };
-            wheel.addEventListener('input', onWheel);
-            wheel.addEventListener('change', onWheel);
+        // Hidden color input the wheel commits to; its change updates the canvas.
+        let proxy = document.getElementById('canvas-color-proxy');
+        if (!proxy) {
+            proxy = document.createElement('input');
+            proxy.type = 'color';
+            proxy.id = 'canvas-color-proxy';
+            proxy.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(proxy);
+        }
+        proxy.value = canvas.color || '#4A90E2';
+        const apply = (e) => this.updateCanvas(canvas.id, { color: (e.target.value || '').toLowerCase() });
+        proxy.oninput = apply;
+        proxy.onchange = apply;
+
+        // Open the color wheel directly. The custom wheel window is loaded on
+        // every platform, so "Change Color" always lands straight on the wheel;
+        // fall back to the native OS picker only if the window isn't present.
+        if (window.LRDColorWindow && typeof window.LRDColorWindow.open === 'function') {
+            window.LRDColorWindow.open(proxy, proxy.value);
+        } else {
+            proxy.click();
         }
     }
 
