@@ -84,17 +84,25 @@ body, #app {
 #left-sidebar { border-right:1px solid var(--ps-dark) !important; }
 #right-sidebar { border-left:1px solid var(--ps-dark) !important; }
 .panel { background:var(--ps-panel) !important; border:1px solid var(--ps-dark) !important; border-radius:0 !important; }
-.panel-header, .panel h2, .panel h3, .sidebar-section-header,
-#left-sidebar h2, #left-sidebar h3, #right-sidebar h2, #right-sidebar h3 {
+/* the title bar is the wrapper (.panel-header) or a standalone section header */
+.panel-header, .sidebar-section-header,
+#left-sidebar > h2, #left-sidebar > h3, #right-sidebar > h2, #right-sidebar > h3 {
   background:linear-gradient(#3c3c3c,#343434) !important; border-bottom:1px solid var(--ps-dark) !important;
   border-left:3px solid var(--ps-accent) !important; box-shadow:inset 0 1px 0 #4a4a4a !important;
   color:var(--ps-text) !important; font-family:var(--font-ps) !important; font-weight:600 !important;
   font-size:11px !important; letter-spacing:0.02em !important; text-transform:uppercase; padding:6px 10px !important;
   position:relative; }
-.panel-header::after, .panel h2::after, .panel h3::after, .sidebar-section-header::after,
-#left-sidebar h2::after, #left-sidebar h3::after, #right-sidebar h2::after, #right-sidebar h3::after {
+.panel-header::after, .sidebar-section-header::after,
+#left-sidebar > h2::after, #left-sidebar > h3::after, #right-sidebar > h2::after, #right-sidebar > h3::after {
   content:'\25BE'; position:absolute; right:9px; top:50%; transform:translateY(-50%);
   color:var(--ps-faint); font-size:10px; pointer-events:none; }
+/* inner header text (was blue) → white, NO second bar/chevron (prevents doubling) */
+.panel-header h2, .panel-header h3, .sidebar-section-header h2,
+#left-sidebar h2, #left-sidebar h3, #right-sidebar h2, #right-sidebar h3 {
+  color:var(--ps-text) !important; background:none !important; border:none !important;
+  box-shadow:none !important; font-family:var(--font-ps) !important; margin:0 !important; padding:0 !important; }
+.panel-header h2::after, .panel-header h3::after,
+#left-sidebar h2::after, #left-sidebar h3::after, #right-sidebar h2::after, #right-sidebar h3::after { content:none !important; }
 /* selection actions bar: blue → accent */
 #pixel-map-bulk-actions { border-left-color:var(--ps-accent) !important; }
 #pixel-map-bulk-actions, #pixel-map-bulk-actions span, #pixel-map-bulk-actions * { color:var(--ps-text) !important; }
