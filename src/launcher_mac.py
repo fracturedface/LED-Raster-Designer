@@ -79,17 +79,46 @@ def get_display_url(settings):
     return f'{protocol}://{display_host}:{port}'
 
 
+def _create_menubar_icon():
+    """Draw the LED Raster Designer mark as a monochrome menu-bar template
+    icon (black pixels; macOS recolors it for light/dark menu bars). Returns
+    a temp file path."""
+    from PIL import Image, ImageDraw
+    import tempfile, os
+    S = 44
+    img = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    k = S / 48.0
+    lit = {(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (0, 2), (2, 2)}
+    for col in range(3):
+        for row in range(3):
+            if (col, row) not in lit:
+                continue
+            x = (11 + col * 9) * k
+            y = (11 + row * 9) * k
+            s = 8 * k
+            try:
+                draw.rounded_rectangle([x, y, x + s, y + s], radius=2 * k, fill=(0, 0, 0, 255))
+            except AttributeError:
+                draw.rectangle([x, y, x + s, y + s], fill=(0, 0, 0, 255))
+    path = os.path.join(tempfile.gettempdir(), 'lrd_menubar.png')
+    img.save(path)
+    return path
+
+
 def run_menubar(settings):
     """Set up the macOS menu bar icon using rumps."""
     import rumps
 
     class LEDRasterDesignerApp(rumps.App):
         def __init__(self):
-            super().__init__(
-                name='LED Raster Designer',
-                title='💡',
-                quit_button=None,
-            )
+            kwargs = dict(name='LED Raster Designer', quit_button=None)
+            try:
+                kwargs['icon'] = _create_menubar_icon()
+                kwargs['template'] = True
+            except Exception:
+                kwargs['title'] = 'LRD'  # fallback if drawing fails
+            super().__init__(**kwargs)
             self.settings = settings
             self._build_menu()
 
