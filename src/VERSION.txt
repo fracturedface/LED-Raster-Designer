@@ -1,6 +1,56 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.6 - June 28, 2026
+----------------------------
+New "Studio" interface, new logo, and several fixes.
+
+A full visual redesign plus a real brand mark, with usability and
+calculation fixes along the way.
+
+INTERFACE — the new "Studio" look
+- REDESIGN: A complete reskin in a desktop, docked-panel style — beveled
+  neutral-gray surfaces, titled panels, a system UI typeface, and a red
+  identity accent. Replaces the old flat dark-blue look.
+- Selectable accent color in Preferences -> Appearance (red, blue,
+  green, amber, purple, teal); the choice persists across sessions.
+- Distinct desktop-style view tabs, chunky tactile sliders, and
+  segmented toggle controls, with a legibility pass throughout (brighter
+  text, clearer surface separation, readable Preferences cards).
+
+LOGO
+- BRANDING: New "Raster Grid" logo — an LED cabinet of pixels — replaces
+  the stand-in lightbulb and floppy-disk icons. It appears in the
+  toolbar, the browser tab (favicon), the About dialog, the macOS menu
+  bar, the Windows tray, and as the app icon (.app / .exe / installer).
+
+SIDEBARS
+- FEATURE: Resizable side panels — drag the inner edge of either sidebar
+  to widen or narrow it; the width persists per side. Works alongside the
+  existing collapse toggle.
+- Denser Screens/layer cards so more layers fit without scrolling.
+
+COLOR
+- Canvas group headers now take on the canvas's own identity color across
+  the whole header (the small color dot is removed); the active canvas is
+  marked with a white outline.
+- Clicking any color control opens the picker directly — the custom color
+  wheel on Windows, the native OS picker on macOS.
+
+FIXES
+- Power / Data per-canvas Totals now regroup by the show-canvas the
+  moment you switch to the tab. Previously a canvas whose screens live on
+  another canvas's processor could read 0 while one canvas showed the
+  whole project total.
+- The screen name on the Cabinet ID, Data, and Power tabs now defaults to
+  the same size as the Pixel Map label font size (was a hardcoded 30 that
+  ignored the label-font-size preference). Applies to new/refreshed
+  screens; existing saved screens keep their sizes.
+- On Pixel Map, Border, Circle with X, and Border Color moved to the
+  bottom of the Labels section.
+- In a narrow panel, checkboxes no longer shrink away; the Layer Size (ft)
+  "Fractions" toggle wraps to its own line instead.
+
 v0.8.11.1 - June 26, 2026
 ----------------------------
 Color picker: fix activation over the network.

@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LED Raster Designer v0.8.11.1</title>
+    <title>LED Raster Designer v0.8.12.6</title>
+    <link rel="icon" type="image/svg+xml" href="/static/img/logo.svg">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/color_picker.css">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <script defer src="/static/js/theme.js"></script>
     <script>window.LRD_PLATFORM = "{{ server_platform }}";</script>
 </head>
 <body>
@@ -86,7 +89,7 @@
 
         <div id="toolbar">
             <div class="toolbar-section toolbar-project">
-                <h1>LED Raster Designer <span style="font-size: 0.6em; color: #888;">v0.8.11.1</span></h1>
+                <h1><svg class="lrd-logo-mark" width="26" height="26" viewBox="0 0 48 48" aria-hidden="true" style="vertical-align:middle; margin-right:9px;"><rect x="3" y="3" width="42" height="42" rx="10" fill="#161616" stroke="#3a3a3a" stroke-width="1.5"/><rect x="11" y="11" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="20" y="11" width="8" height="8" rx="2" fill="var(--ps-accent, #e22330)"/><rect x="29" y="11" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="11" y="20" width="8" height="8" rx="2" fill="var(--ps-accent, #e22330)"/><rect x="20" y="20" width="8" height="8" rx="2" fill="#cfcfcf"/><rect x="29" y="20" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="11" y="29" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="20" y="29" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="29" y="29" width="8" height="8" rx="2" fill="var(--ps-accent, #e22330)"/></svg><span style="white-space:nowrap; vertical-align:middle;">LED Raster Designer <span style="font-size: 0.6em; color: #888;">v0.8.12.6</span></span></h1>
                 <div style="position:relative;">
                     <input type="text" id="project-name" value="Untitled Project" class="editable-project-name">
                     <div id="project-name-warning" style="display:none; position:absolute; top:100%; left:0; margin-top:4px; padding:4px 8px; font-size:11px; color:#f5a623; background:#1a1a1a; border:1px solid #f5a623; border-radius:4px; white-space:nowrap; z-index:1000; pointer-events:none;"></div>
@@ -199,27 +202,9 @@
                                 <input type="range" id="image-scale-range" min="10" max="500" value="100" step="1" style="width: 100%;">
                             </div>
                         </div>
-                        <div class="info-row checkbox-row screen-only" data-tooltip="Border, Show or hide grid lines between individual cabinets on the pixel map view. Width is in LED pixels (1 = 1 LED).">
-                            <input type="checkbox" id="show-panel-borders">
-                            <label for="show-panel-borders" style="flex: 1;">Border</label>
-                            <input type="number" id="panel-border-width" min="1" max="20" step="1" value="2" style="width: 64px;" title="Border width in LED pixels" aria-label="Panel border width in LED pixels">
-                            <span style="font-size: 11px; color: #888;">px</span>
-                        </div>
-                        <div class="info-row checkbox-row screen-only" data-tooltip="Circle with X, Draw an X through each cabinet with a circle, useful for marking dead or unused panels.">
-                            <input type="checkbox" id="show-circle-with-x">
-                            <label for="show-circle-with-x">Circle with X</label>
-                        </div>
-                        <div class="info-row screen-only">
-                            <label>Border Color</label>
-                            <div style="display: flex; gap: 5px; align-items: center;">
-                                <input type="color" id="border-color" value="#ffffff">
-                                <button class="color-swatch" id="border-color-swatch" aria-label="Border Color"></button>
-                                <input type="text" id="border-color-hex" value="#FFFFFF" maxlength="7" style="width: 70px; font-family: monospace;">
-                            </div>
-                        </div>
                     </div>
                 </div>
-                
+
                 <!-- Labels Section -->
                 <div class="panel tab-panel screen-only" data-tab="pixel-map">
                     <div class="panel-header" data-tooltip="Labels, Control which information labels are displayed on each screen layer in the pixel map view.">
@@ -284,10 +269,28 @@
                             <label>Labels Font Size</label>
                             <input type="number" id="labels-fontsize" value="30" min="8" max="200" autocomplete="off" style="width: 60px;">
                         </div>
+                        <div class="info-row checkbox-row screen-only" data-tooltip="Border, Show or hide grid lines between individual cabinets on the pixel map view. Width is in LED pixels (1 = 1 LED).">
+                            <input type="checkbox" id="show-panel-borders">
+                            <label for="show-panel-borders" style="flex: 1;">Border</label>
+                            <input type="number" id="panel-border-width" min="1" max="20" step="1" value="2" style="width: 64px;" title="Border width in LED pixels" aria-label="Panel border width in LED pixels">
+                            <span style="font-size: 11px; color: #888;">px</span>
+                        </div>
+                        <div class="info-row checkbox-row screen-only" data-tooltip="Circle with X, Draw an X through each cabinet with a circle, useful for marking dead or unused panels.">
+                            <input type="checkbox" id="show-circle-with-x">
+                            <label for="show-circle-with-x">Circle with X</label>
+                        </div>
+                        <div class="info-row screen-only">
+                            <label>Border Color</label>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <input type="color" id="border-color" value="#ffffff">
+                                <button class="color-swatch" id="border-color-swatch" aria-label="Border Color"></button>
+                                <input type="text" id="border-color-hex" value="#FFFFFF" maxlength="7" style="width: 70px; font-family: monospace;">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                
+
                 <!-- Cabinet ID Controls -->
                 <div class="panel tab-panel screen-only" data-tab="cabinet-id" style="display: none;">
                     <div class="panel-header" data-tooltip="Cabinet ID Settings, Configure cabinet identification labels, numbering style, position, and border appearance for the selected screen.">
@@ -1449,7 +1452,7 @@
                     </div>
                     <div id="layers-list"></div>
                     <button id="btn-add-canvas" class="btn btn-secondary full-width" style="margin-top: 8px;" data-tooltip="Add a new canvas (a separate raster / processor) to this project">+ Add Canvas</button>
-                    <button id="btn-save-preset" class="btn btn-secondary full-width" style="margin-top: 6px;" data-tooltip="Save the currently selected layer's settings as a reusable preset">💾 Save as Preset</button>
+                    <button id="btn-save-preset" class="btn btn-secondary full-width" style="margin-top: 6px;" data-tooltip="Save the currently selected layer's settings as a reusable preset">Save as Preset</button>
                 </div>
             </div>
 
@@ -1942,6 +1945,12 @@
 
     <div id="about-modal" class="modal" style="display: none;">
         <div class="modal-content" style="background: #252525; border-radius: 8px; padding: 32px; max-width: 420px; margin: 80px auto; border: 1px solid #3a3a3a; text-align: center;">
+            <svg width="56" height="56" viewBox="0 0 48 48" aria-hidden="true" style="display:block; margin:0 auto 12px;">
+                <rect x="3" y="3" width="42" height="42" rx="10" fill="#161616" stroke="#3a3a3a" stroke-width="1.5"/>
+                <rect x="11" y="11" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="20" y="11" width="8" height="8" rx="2" fill="#e22330"/><rect x="29" y="11" width="8" height="8" rx="2" fill="#5a5a5a"/>
+                <rect x="11" y="20" width="8" height="8" rx="2" fill="#e22330"/><rect x="20" y="20" width="8" height="8" rx="2" fill="#cfcfcf"/><rect x="29" y="20" width="8" height="8" rx="2" fill="#5a5a5a"/>
+                <rect x="11" y="29" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="20" y="29" width="8" height="8" rx="2" fill="#5a5a5a"/><rect x="29" y="29" width="8" height="8" rx="2" fill="#e22330"/>
+            </svg>
             <h2 style="margin-top: 0; color: #fff; margin-bottom: 4px; font-size: 20px;">LED Raster Designer</h2>
             <div id="about-version" style="color: #888; font-size: 13px; margin-bottom: 20px;"></div>
 

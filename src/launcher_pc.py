@@ -80,26 +80,42 @@ def get_display_url(settings):
 
 
 def create_tray_icon_image():
-    """Create a lightbulb icon programmatically."""
+    """LED Raster Designer mark — a small LED cabinet of pixels."""
     from PIL import Image, ImageDraw
 
-    img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+    S = 64
+    img = Image.new('RGBA', (S, S), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
+    k = S / 48.0  # the mark is authored on a 48-unit grid
 
-    # Bulb (yellow circle)
-    draw.ellipse([16, 4, 48, 36], fill='#FFD700', outline='#FFA500', width=2)
-    # Base (gray rectangle)
-    draw.rectangle([22, 34, 42, 44], fill='#808080', outline='#606060', width=1)
-    draw.rectangle([24, 44, 40, 48], fill='#707070', outline='#606060', width=1)
-    # Screw tip
-    draw.polygon([(28, 48), (36, 48), (32, 56)], fill='#606060')
-    # Light rays
-    draw.line([32, 0, 32, 4], fill='#FFD700', width=2)
-    draw.line([8, 20, 14, 20], fill='#FFD700', width=2)
-    draw.line([50, 20, 56, 20], fill='#FFD700', width=2)
-    draw.line([14, 8, 18, 12], fill='#FFD700', width=2)
-    draw.line([50, 8, 46, 12], fill='#FFD700', width=2)
+    def cell(col, row, color):
+        x = (11 + col * 9) * k
+        y = (11 + row * 9) * k
+        s = 8 * k
+        try:
+            draw.rounded_rectangle([x, y, x + s, y + s], radius=3 * k, fill=color)
+        except AttributeError:  # very old Pillow
+            draw.rectangle([x, y, x + s, y + s], fill=color)
 
+    # Cabinet tile
+    try:
+        draw.rounded_rectangle([4, 4, 60, 60], radius=13, fill=(22, 22, 22, 255),
+                               outline=(70, 70, 70, 255), width=2)
+    except AttributeError:
+        draw.rectangle([4, 4, 60, 60], fill=(22, 22, 22, 255), outline=(70, 70, 70, 255), width=2)
+
+    GRAY = (90, 90, 90, 255)
+    ACCENT = (226, 35, 48, 255)
+    LIGHT = (207, 207, 207, 255)
+    # 3x3 raster (matches the app's logo.svg)
+    grid = [
+        [GRAY, ACCENT, GRAY],
+        [ACCENT, LIGHT, GRAY],
+        [GRAY, GRAY, ACCENT],
+    ]
+    for row in range(3):
+        for col in range(3):
+            cell(col, row, grid[row][col])
     return img
 
 

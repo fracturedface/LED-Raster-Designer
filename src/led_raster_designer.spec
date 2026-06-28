@@ -72,7 +72,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=not (IS_MAC or sys.platform == 'win32'),  # No console on macOS/Windows (tray handles it)
-    icon=None,
+    icon=('icon.ico' if sys.platform == 'win32' else None),  # Windows .exe icon
 )
 
 coll = COLLECT(
@@ -91,13 +91,13 @@ if IS_MAC:
     app = BUNDLE(
         coll,
         name='LED Raster Designer.app',
-        icon=None,
+        icon='icon.icns',
         bundle_identifier='com.ledrasterdesigner.app',
         info_plist={
             'CFBundleName': 'LED Raster Designer',
             'CFBundleDisplayName': 'LED Raster Designer',
-            'CFBundleShortVersionString': '0.8.11.1',
-            'CFBundleVersion': '0.8.11.1',
+            'CFBundleShortVersionString': '0.8.12.6',
+            'CFBundleVersion': '0.8.12.6',
             'NSHighResolutionCapable': True,
             'LSUIElement': True,  # Menu bar only — no Dock icon
         },

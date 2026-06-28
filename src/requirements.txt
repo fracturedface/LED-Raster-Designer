@@ -1,6 +1,8 @@
 Flask>=3.0.0
-flask-socketio>=5.3.5
-python-socketio>=5.10.0
+# 5.6.0+ required: older Flask-SocketIO (e.g. 5.3.5) ships a test client that
+# fails to capture server-emitted events, breaking the websocket test suite.
+flask-socketio>=5.6.0
+python-socketio>=5.16.0
 Pillow>=10.1.0
 numpy>=1.24.0
 pytoshop>=1.2.0

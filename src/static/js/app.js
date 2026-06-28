@@ -1976,6 +1976,11 @@ class LEDRasterApp {
         this.currentLayer.weight_unit = prefs.weightUnit || 'kg';
         this.currentLayer.number_size = prefs.cabinetFontSize;
         this.currentLayer.labelsFontSize = prefs.labelFontSize;
+        // The screen name on the other tabs uses the same default size as the
+        // Pixel Map label font size, so the name is consistent across tabs.
+        this.currentLayer.screenNameSizeCabinet = prefs.labelFontSize;
+        this.currentLayer.screenNameSizeDataFlow = prefs.labelFontSize;
+        this.currentLayer.screenNameSizePower = prefs.labelFontSize;
         this.currentLayer.color1 = this.hexToRgb(prefs.color1);
         this.currentLayer.color2 = this.hexToRgb(prefs.color2);
         this.currentLayer.border_color = prefs.borderColor;
@@ -2369,6 +2374,14 @@ class LEDRasterApp {
                 // show_canvas_id; Pixel Map groups by canvas_id).
                 if (typeof this.renderLayers === 'function') {
                     try { this.renderLayers(); } catch (_) {}
+                }
+                // Recompute the Data/Power Totals now that the view (and thus
+                // the show-canvas grouping) has changed. Without this the
+                // per-canvas totals keep the previous tab's grouping and
+                // collapse every screen onto its processor canvas (canvas_id),
+                // so canvases that only host screens via show_canvas_id read 0.
+                if (typeof this.refreshTotalsSidebar === 'function') {
+                    try { this.refreshTotalsSidebar(); } catch (_) {}
                 }
                 sendClientLog('tab_switch', {
                     tab: mode,
@@ -5783,10 +5796,11 @@ class LEDRasterApp {
         layer.portLabelOverridesReturn = {};
         layer.customPortPaths = {};
         layer.customPortIndex = 1;
-        // Screen name sizes default to 30 on all tabs
-        layer.screenNameSizeCabinet = 30;
-        layer.screenNameSizeDataFlow = 30;
-        layer.screenNameSizePower = 30;
+        // Screen name size on the other tabs follows the label font size default
+        // so the screen name is the same size across all tabs.
+        layer.screenNameSizeCabinet = prefs.labelFontSize || 30;
+        layer.screenNameSizeDataFlow = prefs.labelFontSize || 30;
+        layer.screenNameSizePower = prefs.labelFontSize || 30;
         // Cabinet ID number size default to 30
         layer.number_size = 30;
         layer.randomDataColors = false;
@@ -13125,54 +13139,38 @@ class LEDRasterApp {
     }
 
     openCanvasColorPicker(canvas) {
+        // Clean up any stray popup from the previous implementation.
         document.querySelectorAll('.canvas-color-popup').forEach(el => el.remove());
-        const palette = ['#4A90E2', '#F5A623', '#7ED321', '#BD10E0',
-                         '#D0021B', '#50E3C2', '#F8E71C', '#9013FE'];
-        const popup = document.createElement('div');
-        popup.className = 'canvas-color-popup';
-        popup.innerHTML = `
-            <div class="canvas-color-swatches">
-                ${palette.map(c => `<button class="color-swatch" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
-            </div>
-            <div class="canvas-color-hex-row">
-                <label>Hex:</label>
-                <input type="text" class="canvas-color-hex" value="${canvas.color || ''}" maxlength="7">
-                <button class="canvas-color-apply">Apply</button>
-            </div>
-        `;
-        document.body.appendChild(popup);
+
+        // Hidden color input the picker commits to; its change updates the canvas.
+        let proxy = document.getElementById('canvas-color-proxy');
+        if (!proxy) {
+            proxy = document.createElement('input');
+            proxy.type = 'color';
+            proxy.id = 'canvas-color-proxy';
+            proxy.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;border:0;padding:0;z-index:12000;';
+            document.body.appendChild(proxy);
+        }
+        // Anchor it near the canvas's menu button so the native picker pops up there.
         const anchor = document.querySelector(`.canvas-group[data-canvas-id="${canvas.id}"] .canvas-menu-btn`);
         if (anchor) {
             const r = anchor.getBoundingClientRect();
-            popup.style.position = 'fixed';
-            popup.style.top = `${r.bottom + 4}px`;
-            popup.style.left = `${Math.max(8, r.right - 200)}px`;
-            popup.style.zIndex = '12000';
+            proxy.style.left = `${Math.round(r.left)}px`;
+            proxy.style.top = `${Math.round(r.bottom)}px`;
         }
-        const close = () => {
-            popup.remove();
-            document.removeEventListener('mousedown', onOutside, true);
-        };
-        const onOutside = (e) => { if (!popup.contains(e.target)) close(); };
-        setTimeout(() => document.addEventListener('mousedown', onOutside, true), 0);
+        proxy.value = canvas.color || '#4A90E2';
+        const apply = (e) => this.updateCanvas(canvas.id, { color: (e.target.value || '').toLowerCase() });
+        proxy.oninput = apply;
+        proxy.onchange = apply;
 
-        popup.querySelectorAll('.color-swatch').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.updateCanvas(canvas.id, { color: btn.dataset.color });
-                close();
-            });
-        });
-        popup.querySelector('.canvas-color-apply').addEventListener('click', (e) => {
-            e.stopPropagation();
-            const hex = popup.querySelector('.canvas-color-hex').value.trim();
-            if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-                this.updateCanvas(canvas.id, { color: hex });
-                close();
-            } else {
-                this._toast('Invalid hex color (expected #RRGGBB)', true);
-            }
-        });
+        // Same rule as every other color control: custom wheel on PC, native OS
+        // picker on macOS. Either way it opens directly on "Change Color".
+        const useCustom = window.LRDColorPicker && window.LRDColorPicker.isEnabled();
+        if (useCustom && window.LRDColorWindow && typeof window.LRDColorWindow.open === 'function') {
+            window.LRDColorWindow.open(proxy, proxy.value);
+        } else {
+            proxy.click(); // native OS color picker (macOS wheel)
+        }
     }
 
     updateLayerOrderControls() {

@@ -1,4 +1,4 @@
-# LED Raster Designer v0.8.11.1
+# LED Raster Designer v0.8.12.6
 
 A professional LED video wall layout designer for live events, concerts, and installations.
 
@@ -33,6 +33,15 @@ Other devices on your local network can use the app by going to `http://[your-ip
 ---
 
 ## Features
+
+### Interface (new in v0.8.12)
+
+A clean, desktop-style "Studio" interface: titled docked panels, beveled neutral-gray surfaces, a system typeface, and a red identity accent. The app icon and toolbar carry the "Raster Grid" logo mark (an LED cabinet of pixels).
+
+- **Accent color** — choose the interface accent in **Preferences → Appearance** (red, blue, green, amber, purple, teal). It applies app-wide and is remembered.
+- **Resizable side panels** — drag the inner edge of either sidebar to make it wider or narrower; each side's width is remembered. The ‹ / › chevrons still collapse a sidebar entirely.
+- **One-click color picker** — clicking any color control opens the picker directly: a built-in color wheel on Windows, the native OS picker on macOS.
+- **Per-canvas color** — each canvas's Screens header is tinted with that canvas's identity color, so canvases are easy to tell apart at a glance.
 
 ### Multi-Canvas (new in v0.8)
 
@@ -89,7 +98,7 @@ Half-tiles count as **0.5 panel** for data/port math and **0.65 panel** for powe
 | **Drag-select on empty space** | Marquee-select layers (Pixel Map) or panels (when starting on a current-layer panel) |
 | **Magnetic Snap toggle** | Snap dragged screens to other screens' edges and to raster bounds |
 | **Fit / 1:1 buttons** | Fit raster to view, or reset to 100% zoom |
-| **Sidebar collapse chevrons** | Tap the ‹ / › on the inner edge of either sidebar to hide/show it independently. State persists across reloads. |
+| **Sidebar resize / collapse** | Drag the inner edge of a sidebar to resize it (each side's width persists). Tap the ‹ / › chevron to collapse/expand it. State persists across reloads. |
 
 ### Keyboard Shortcuts
 
@@ -156,6 +165,8 @@ Half-tiles count as **0.5 panel** for data/port math and **0.65 panel** for powe
 - Default raster size, grid colors, flow patterns, and line widths
 - Default processor, bit depth, frame rate, voltage, and amperage
 - Default panel size (mm) and weight unit (kg / lb)
+- Default label / screen-name font size — the screen name now uses this same size on every tab (Pixel Map, Cabinet ID, Data, Power), so it stays consistent
+- **Appearance**: pick the interface accent color
 - Settings persist across sessions
 
 ---
