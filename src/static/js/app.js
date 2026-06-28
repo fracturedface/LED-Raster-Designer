@@ -13135,6 +13135,7 @@ class LEDRasterApp {
                 ${palette.map(c => `<button class="color-swatch" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
             </div>
             <div class="canvas-color-hex-row">
+                <input type="color" class="canvas-color-wheel" value="${canvas.color || '#4A90E2'}" title="Open color wheel">
                 <label>Hex:</label>
                 <input type="text" class="canvas-color-hex" value="${canvas.color || ''}" maxlength="7">
                 <button class="canvas-color-apply">Apply</button>
@@ -13153,7 +13154,12 @@ class LEDRasterApp {
             popup.remove();
             document.removeEventListener('mousedown', onOutside, true);
         };
-        const onOutside = (e) => { if (!popup.contains(e.target)) close(); };
+        const onOutside = (e) => {
+            if (popup.contains(e.target)) return;
+            // Keep the popup open while the user is in the color wheel / picker.
+            if (e.target.closest && e.target.closest('.lrd-cw-window, .lrd-cp-popover')) return;
+            close();
+        };
         setTimeout(() => document.addEventListener('mousedown', onOutside, true), 0);
 
         popup.querySelectorAll('.color-swatch').forEach(btn => {
@@ -13173,6 +13179,19 @@ class LEDRasterApp {
                 this._toast('Invalid hex color (expected #RRGGBB)', true);
             }
         });
+        // Color-wheel swatch: opens the wheel picker (custom on Windows, native
+        // on macOS) and applies the chosen color to the canvas live.
+        const wheel = popup.querySelector('.canvas-color-wheel');
+        if (wheel) {
+            const onWheel = (e) => {
+                const v = (e.target.value || '').toLowerCase();
+                const hexField = popup.querySelector('.canvas-color-hex');
+                if (hexField) hexField.value = v;
+                this.updateCanvas(canvas.id, { color: v });
+            };
+            wheel.addEventListener('input', onWheel);
+            wheel.addEventListener('change', onWheel);
+        }
     }
 
     updateLayerOrderControls() {
