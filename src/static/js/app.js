@@ -13128,27 +13128,34 @@ class LEDRasterApp {
         // Clean up any stray popup from the previous implementation.
         document.querySelectorAll('.canvas-color-popup').forEach(el => el.remove());
 
-        // Hidden color input the wheel commits to; its change updates the canvas.
+        // Hidden color input the picker commits to; its change updates the canvas.
         let proxy = document.getElementById('canvas-color-proxy');
         if (!proxy) {
             proxy = document.createElement('input');
             proxy.type = 'color';
             proxy.id = 'canvas-color-proxy';
-            proxy.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+            proxy.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;border:0;padding:0;z-index:12000;';
             document.body.appendChild(proxy);
+        }
+        // Anchor it near the canvas's menu button so the native picker pops up there.
+        const anchor = document.querySelector(`.canvas-group[data-canvas-id="${canvas.id}"] .canvas-menu-btn`);
+        if (anchor) {
+            const r = anchor.getBoundingClientRect();
+            proxy.style.left = `${Math.round(r.left)}px`;
+            proxy.style.top = `${Math.round(r.bottom)}px`;
         }
         proxy.value = canvas.color || '#4A90E2';
         const apply = (e) => this.updateCanvas(canvas.id, { color: (e.target.value || '').toLowerCase() });
         proxy.oninput = apply;
         proxy.onchange = apply;
 
-        // Open the color wheel directly. The custom wheel window is loaded on
-        // every platform, so "Change Color" always lands straight on the wheel;
-        // fall back to the native OS picker only if the window isn't present.
-        if (window.LRDColorWindow && typeof window.LRDColorWindow.open === 'function') {
+        // Same rule as every other color control: custom wheel on PC, native OS
+        // picker on macOS. Either way it opens directly on "Change Color".
+        const useCustom = window.LRDColorPicker && window.LRDColorPicker.isEnabled();
+        if (useCustom && window.LRDColorWindow && typeof window.LRDColorWindow.open === 'function') {
             window.LRDColorWindow.open(proxy, proxy.value);
         } else {
-            proxy.click();
+            proxy.click(); // native OS color picker (macOS wheel)
         }
     }
 
