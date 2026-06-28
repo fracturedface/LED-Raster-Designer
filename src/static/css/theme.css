@@ -259,6 +259,15 @@ input[type="radio"] { accent-color:var(--ps-accent) !important; }
 /* ---- legacy blue cleanup ---- */
 [style*="#4A90E2"], [style*="#4a90e2"], [style*="rgb(74, 144, 226)"] { color:var(--ps-text) !important; }
 
+/* ════════ NARROW-PANEL CHECKBOX ROWS ════════ */
+/* checkboxes never collapse when a sidebar is narrow (they were shrinking to
+   ~3px and disappearing) */
+.checkbox-row input[type="checkbox"], .info-row input[type="checkbox"] { flex-shrink:0 !important; }
+/* Layer Size (ft) row: tighten the Fractions sub-toggle and let it wrap to a
+   new line instead of squeezing the checkbox out */
+.checkbox-row:has(#show-label-size-ft) { flex-wrap:wrap; row-gap:4px; }
+label:has(#use-fractional-inches) { margin-left:8px !important; flex-shrink:0; }
+
 /* ════════ DENSER LAYER CARDS ════════ */
 .layer-item { padding:7px 9px !important; margin-bottom:5px !important; }
 .layer-item .layer-info { margin-top:3px !important; line-height:1.25 !important; }
