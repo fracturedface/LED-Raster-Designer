@@ -1,6 +1,16 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.8.12.3 - June 28, 2026
+----------------------------
+Power/Data totals fix (design preview).
+
+- FIX: On the Data and Power tabs, the per-canvas Totals now regroup by
+  the show-canvas as soon as you switch to the tab. Previously a canvas
+  whose screens live on another canvas's processor (via show_canvas_id)
+  could read 0 while a single canvas showed the whole project total,
+  because the totals kept the previous tab's grouping.
+
 v0.8.12.2 - June 28, 2026
 ----------------------------
 Studio theme: canvas color tweaks (design preview).
