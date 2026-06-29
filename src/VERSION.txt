@@ -1,6 +1,14 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.9.0.1 - June 28, 2026
+----------------------------
+- FIX: In the Export dialog, checked checkboxes (canvases, views, options)
+  now fill solid with a checkmark instead of showing only a colored
+  outline. A modal-input style was overriding the checked state.
+- Transparent Background is now checked by default in the Export dialog.
+
+
 v0.9.0 - June 28, 2026
 ----------------------------
 Redesigned interface, new logo, and several fixes.

@@ -139,11 +139,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:11px;
 
 /* ---- desktop checkboxes ---- */
 input[type="checkbox"] { -webkit-appearance:none; appearance:none; width:15px !important; height:15px !important;
-  background:var(--ps-inset) !important; border:1px solid var(--ps-dark) !important; border-radius:2px !important;
+  background-color:var(--ps-inset) !important; background-image:none !important; border:1px solid var(--ps-dark) !important; border-radius:2px !important;
   box-shadow:inset 0 1px 2px rgba(0,0,0,0.5) !important; cursor:pointer; vertical-align:middle;
-  background-repeat:no-repeat !important; background-position:center !important; }
-input[type="checkbox"]:checked { background:var(--ps-accent) !important; border-color:var(--ps-accent-deep) !important;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2.5 6.2 L5 8.6 L9.5 3.4' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") !important; }
+  background-repeat:no-repeat !important; background-position:center !important; background-size:11px 11px !important; }
+input[type="checkbox"]:checked { background-color:var(--ps-accent) !important; border-color:var(--ps-accent-deep) !important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 L5 8.6 L9.5 3.4' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important; }
 input[type="radio"] { accent-color:var(--ps-accent) !important; }
 
 /* ---- segmented toggle groups ---- */
@@ -249,7 +249,12 @@ input[type="radio"] { accent-color:var(--ps-accent) !important; }
 .prefs-grid > div, .prefs-group, .export-views {
   background:var(--ps-panel-2) !important; border:1px solid var(--ps-dark) !important; border-radius:4px !important; }
 /* fields stay recessed + bright text so they read against the lifted blocks */
-#preferences-modal input, #preferences-modal select, #export-modal input, #export-modal select {
+/* text fields / selects in modals get the recessed inset look — but NOT
+   checkboxes/radios, which carry their own checked fill (see checkbox rules) */
+#preferences-modal input:not([type="checkbox"]):not([type="radio"]),
+#preferences-modal select,
+#export-modal input:not([type="checkbox"]):not([type="radio"]),
+#export-modal select {
   background:var(--ps-inset) !important; color:var(--ps-text) !important; }
 
 /* dim helper lines in the side panels (e.g. "Click & drag the screen name…") */
