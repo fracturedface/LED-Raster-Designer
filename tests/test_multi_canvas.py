@@ -502,12 +502,11 @@ def test_active_canvas_selection_scoping_rule_documented():
 
         currentLayer.canvas_id === project.active_canvas_id
 
-    after every layer selection or canvas activation. This test is a
-    documentation anchor, if you remove the scoping logic, please update
-    docs/multi-canvas-design.md and delete this assertion deliberately.
+    after every layer selection or canvas activation. If you remove the
+    scoping logic, update this test deliberately.
     """
     # Marker assertion; the real verification is the manual UX checklist
-    # in the slice 5 PR description (no headless browser in CI).
+    # (no headless browser in CI).
     assert True
 
 

@@ -3807,7 +3807,7 @@ v0.1.1 - January 27, 2026
 BUG FIX RELEASE
 
 Fixes:
-- Fixed text scaling to work like professional LED software (professional LED software)
+- Fixed text scaling to work like professional LED software
 - Text now scales proportionally with zoom level (maintains visual relationship to panels)
 - At 100% zoom (1:1), text renders at exact pixel size specified (e.g., 14px)
 - At 200% zoom, text scales to 28px on screen; at 50% zoom, scales to 7px
@@ -3918,7 +3918,7 @@ v0.1.1 - January 27, 2026
 BUG FIX RELEASE
 
 Fixes:
-- Fixed text scaling to work like professional LED software (professional LED software)
+- Fixed text scaling to work like professional LED software
 - Text now scales proportionally with zoom level (maintains visual relationship to panels)
 - At 100% zoom (1:1), text renders at exact pixel size specified (e.g., 14px)
 - At 200% zoom, text scales to 28px on screen; at 50% zoom, scales to 7px
