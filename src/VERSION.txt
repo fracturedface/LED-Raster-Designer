@@ -16,10 +16,9 @@ INTERFACE
   text, clearer surface separation, readable Preferences cards).
 
 LOGO
-- BRANDING: New "Raster Grid" logo — an LED cabinet of pixels — replaces
-  the stand-in lightbulb and floppy-disk icons. It appears in the
-  toolbar, the browser tab (favicon), the About dialog, the macOS menu
-  bar, the Windows tray, and as the app icon (.app / .exe / installer).
+- New logo, used in the toolbar, the browser tab (favicon), the About
+  dialog, the macOS menu bar, the Windows tray, and as the app icon
+  (.app / .exe / installer).
 
 SIDEBARS
 - FEATURE: Resizable side panels — drag the inner edge of either sidebar
@@ -71,7 +70,7 @@ Color picker: all five tabs complete (Windows color picker).
   persistent Custom palette with the + button.
 - FEATURE: Image Palettes tab. A spectrum image (hue across, white →
   saturated → black down); click or drag anywhere to sample a color.
-- FEATURE: Pencils tab. The classic crayon-style grid (48 named
+- FEATURE: Pencils tab. A crayon-style grid (48 named
   colors); click a crayon to use it, its name shows below.
 - All tabs stay in sync with each other and the canvas updates live.
   (macOS keeps its own native picker; this is the Windows replica.)
@@ -144,7 +143,7 @@ Gradients + multi-color cabinet palettes (standard).
   - Spread: Whole screen, or Each panel (gradient repeated on every
     cabinet). "Alternate panels" mirrors every other COLUMN for a
     woven wave look.
-  - Typeable Opacity, and the full standard image editors blend-mode set
+  - Typeable Opacity, and the full standard blend-mode set
     (Normal, Multiply, Screen, Overlay, Darken, Lighten, Color
     Dodge/Burn, Hard/Soft Light, Difference, Exclusion, Hue,
     Saturation, Color, Luminosity).
@@ -676,7 +675,7 @@ v0.8.1 - May 4, 2026
 v0.8.0 - May 4, 2026
 ----------------------------
 MULTI-CANVAS RELEASE. Projects can now contain multiple independent
-canvases (think Resolume Screens). Each canvas has its own raster size,
+canvases (think one screen per processor). Each canvas has its own raster size,
 its own workspace position, its own perspective, and exports as its own
 file (or its own page in PDF / its own Screen in Resolume XML).
 
@@ -1378,9 +1377,9 @@ v0.6.5.5 - March 18, 2026
 
 v0.6.5.4 - March 18, 2026
 ----------------------------
-- Add: Keyboard shortcut Ctrl/Cmd+0 for Fit to View (standard image editors standard)
-- Add: Keyboard shortcut Ctrl/Cmd+1 for Actual Size 1:1 (standard image editors standard)
-- Add: Keyboard shortcut Ctrl/Cmd+Shift+' for Toggle Snap (standard image editors standard)
+- Add: Keyboard shortcut Ctrl/Cmd+0 for Fit to View (standard)
+- Add: Keyboard shortcut Ctrl/Cmd+1 for Actual Size 1:1 (standard)
+- Add: Keyboard shortcut Ctrl/Cmd+Shift+' for Toggle Snap (standard)
 - Add: Toggle Snap option in View menu
 - Update: Tooltips and Help > Keyboard Shortcuts modal with new shortcuts
 
@@ -1442,7 +1441,7 @@ v0.6.4.7 - March 17, 2026
  UI IMPROVEMENTS:
  - Added selection marker ring on the color wheel showing the currently
    picked position. Brightness slider now updates the color at the marker.
- - Added Resolume-style help tooltip panel in the bottom-right corner below
+ - Added help tooltip panel in the bottom-right corner below
    the Screens panel. Hover any control to see contextual help. Closeable
    with X button, re-openable via Help > Show Help Tooltip.
  - Added comprehensive tooltips to all sidebar panels, toolbar buttons,
@@ -2637,11 +2636,11 @@ v0.3.5 - January 28, 2026
 -------------------------
 STANDARD LAYERS & DELETE BEHAVIOR
 
-**Fix 1: Auto-Select Layer After Delete (standard image editors Behavior)**
+**Fix 1: Auto-Select Layer After Delete (standard behavior)**
 When deleting with Delete key:
 - Now selects the layer below the deleted one
 - If deleting the bottom layer, selects the one above
-- Uses same index position logic as standard image editors
+- Uses same index position logic as standard editors
 - No more "nothing selected" after delete!
 
 Code change:
@@ -2653,9 +2652,9 @@ const newIndex = Math.min(currentIndex, this.project.layers.length - 1);
 this.currentLayer = this.project.layers[newIndex];
 ```
 
-**Fix 2: Reverse Layer Order - standard image editors Style** 🎨
+**Fix 2: Reverse Layer Order - standard ordering** 🎨
 - Newest layers now appear at the TOP
-- Just like standard image editors layers panel
+- Just like a standard layers panel
 - Makes more sense visually
 - Backend array order unchanged (for Z-order consistency)
 
@@ -3034,10 +3033,10 @@ Test:
 
 v0.2.8 - January 27, 2026
 -------------------------
-PHOTOSHOP-STANDARD SHORTCUTS
+KEYBOARD SHORTCUTS
 
 Changes:
-- **Cmd+J / Ctrl+J**: Duplicate layer (standard image editors standard)
+- **Cmd+J / Ctrl+J**: Duplicate layer (standard)
 - **Removed Cmd+D**: Was non-standard, now uses Cmd+J
 - **Removed Cmd+R**: Was non-standard for redo
 

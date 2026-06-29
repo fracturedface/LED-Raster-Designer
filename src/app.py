@@ -2489,7 +2489,7 @@ def export_psd():
     # We need to build layer list
     layer_records = []
     
-    # Add each layer (in reverse order so first layer is on bottom in standard image editors layer panel)
+    # Add each layer (in reverse order so first layer is on bottom in a layer panel)
     for layer in current_project['layers']:
         # Render layer to image (full raster size with transparency)
         layer_img = render_layer_to_image(layer, raster_width, raster_height, include_borders)

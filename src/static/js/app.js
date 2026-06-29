@@ -9067,7 +9067,7 @@ class LEDRasterApp {
         // v0.8.7: optional resolution-scale multiplier (PSD only). Native
         // scale = 1 (existing behavior for PNG/PDF). Higher values render
         // PSD at scale × native raster so vector content (panels, labels,
-        // arrows, text) stays crisp at higher zoom in standard image editors. PNG/PDF
+        // arrows, text) stays crisp at higher zoom. PNG/PDF
         // skip the scale (their use cases don't benefit and the larger
         // file sizes would surprise users).
         // The actual scale used is clamped per pass to keep PSD dimensions
@@ -12115,7 +12115,7 @@ class LEDRasterApp {
         
         console.log('RENDER LAYERS: currentLayer.id =', this.currentLayer?.id, 'all ids =', layerIds);
         
-        // Reverse the layers array for display - standard image editors style (newest on top)
+        // Reverse the layers array for display - standard (newest on top)
         const reversedLayers = [...this.project.layers].reverse();
         this.layerListOrder = reversedLayers.map(l => l.id);
         
@@ -12362,7 +12362,7 @@ class LEDRasterApp {
             const body = group.querySelector('.canvas-group-body');
 
             // Append matching layer nodes in reverse render order
-            // (standard image editors style, newest on top).
+            // (standard, newest on top).
             const reversed = [...project.layers].reverse();
             reversed.forEach(layer => {
                 if (layerCanvasId(layer) !== canvas.id) return;

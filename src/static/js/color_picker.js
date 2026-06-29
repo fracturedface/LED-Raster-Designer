@@ -1,7 +1,7 @@
 /* ──────────────────────────────────────────────────────────────────────
    LRD Color Picker — a replica of the macOS Color popover for Windows.
 
-   On macOS the native <input type="color"> already opens the real Apple
+   On macOS the native <input type="color"> already opens the native OS
    picker, so we leave it alone. On Windows the native control opens the
    (very different) OS picker, so we intercept it and show this replica.
 
@@ -18,7 +18,7 @@
     function isClientMac() {
         // Detect the BROWSER's OS, not the server's. A Windows browser hitting a
         // Mac-hosted server must still get the custom picker; a Mac browser keeps
-        // the real native Apple picker. navigator.userAgentData is most reliable
+        // the native OS picker. navigator.userAgentData is most reliable
         // where available, falling back to platform/userAgent sniffing.
         try {
             const uaPlat = navigator.userAgentData && navigator.userAgentData.platform;
@@ -31,7 +31,7 @@
     function isEnabled() {
         if (/[?&]colorpicker=force/.test(location.search)) return true;
         try { if (localStorage.getItem('lrd_force_color_picker') === '1') return true; } catch (e) { /* ignore */ }
-        // Enable on every non-Apple client (Windows, Linux, ChromeOS). Apple
+        // Enable on every non-macOS client (Windows, Linux, ChromeOS). macOS
         // clients keep their native picker. Gating on the client — not the
         // server's window.LRD_PLATFORM — is what makes the LAN case work: a
         // Windows browser on a Mac-hosted server now correctly gets the picker.
@@ -111,7 +111,7 @@
     function rgbStr(o) { return 'rgb(' + o.r + ',' + o.g + ',' + o.b + ')'; }
 
     // ── Palettes ───────────────────────────────────────────────────────
-    // Top vivid row — the saturated "Apple" basics.
+    // Top vivid row — the saturated basics.
     const VIVID = [
         '#FF2D2D', '#FF9500', '#FFF500', '#4CD916', '#00E5E0', '#0A60FF',
         '#9B30FF', '#C42BD6', '#AA7942', '#FFFFFF', '#919191', '#000000'
@@ -150,7 +150,7 @@
         pencils: '<svg viewBox="0 0 22 22"><g stroke-width="0"><path d="M5 19l2-9 2 0 2 9z" fill="#ff6b6b"/><path d="M10 19l2-11 2 0 2 11z" fill="#4ab1ff"/><path d="M15 19l1.6-7 1.6 0 1.6 7z" fill="#5ad06a"/></g><g fill="#2c2c2e"><path d="M7 10l1-1.5 1 1.5z"/><path d="M12 8l1-1.5 1 1.5z"/></g></svg>'
     };
 
-    // macOS "Crayons" set (48), for the Pencils tab.
+    // a crayon-style set (48) for the Pencils tab.
     const CRAYONS = [
         { name: 'Licorice', hex: '#000000' }, { name: 'Lead', hex: '#191919' }, { name: 'Tungsten', hex: '#333333' },
         { name: 'Iron', hex: '#4C4C4C' }, { name: 'Steel', hex: '#666666' }, { name: 'Tin', hex: '#7F7F7F' },
@@ -170,8 +170,8 @@
         { name: 'Lavender', hex: '#D783FF' }, { name: 'Bubblegum', hex: '#FF85FF' }, { name: 'Carnation', hex: '#FF8AD8' }
     ];
 
-    // The named colors in the macOS "Apple" palette (Color Palettes tab).
-    const APPLE_PALETTE = [
+    // The named colors in the system palette (Color Palettes tab).
+    const SYSTEM_PALETTE = [
         { name: 'Cayenne', hex: '#941100' }, { name: 'Maraschino', hex: '#FF2600' }, { name: 'Salmon', hex: '#FF7E79' },
         { name: 'Mocha', hex: '#945200' }, { name: 'Tangerine', hex: '#FF9300' }, { name: 'Cantaloupe', hex: '#FFD479' },
         { name: 'Asparagus', hex: '#929000' }, { name: 'Lemon', hex: '#FFFB00' }, { name: 'Banana', hex: '#FFFC79' },
@@ -580,9 +580,9 @@
             row.className = 'lrd-cw-moderow';
             const sel = document.createElement('select');
             sel.className = 'lrd-cw-mode';
-            const palettes = ['Apple', 'Web Safe Colors', 'Custom'];
+            const palettes = ['System', 'Web Safe Colors', 'Custom'];
             palettes.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o); });
-            sel.value = this._paletteName || 'Apple';
+            sel.value = this._paletteName || 'System';
             const addBtn = document.createElement('button');
             addBtn.type = 'button'; addBtn.className = 'lrd-cw-opts'; addBtn.textContent = '+';
             addBtn.title = 'Add the current color to the Custom palette';
@@ -623,7 +623,7 @@
             fill();
         },
         _paletteItems(name) {
-            if (name === 'Apple') return APPLE_PALETTE;
+            if (name === 'System') return SYSTEM_PALETTE;
             if (name === 'Custom') return this._loadCustomPalette();
             // Web Safe: 216 colors (00,33,66,99,CC,FF per channel)
             const out = []; const steps = ['00', '33', '66', '99', 'CC', 'FF'];
@@ -680,7 +680,7 @@
             });
         },
 
-        // ── Pencils tab (Crayons) ──────────────────────────────────────
+        // ── Pencils tab ──────────────────────────────────────
         _renderPencils() {
             this._wheel = null; this._controls = [];
             this._body.innerHTML = '';

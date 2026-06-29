@@ -36,7 +36,7 @@ Other devices on your local network can use the app by going to `http://[your-ip
 
 ### Interface (new in v0.8.12)
 
-A clean, desktop-style "Studio" interface: titled docked panels, beveled neutral-gray surfaces, a system typeface, and a red identity accent. The app icon and toolbar carry the "Raster Grid" logo mark (an LED cabinet of pixels).
+A clean, desktop-style "Studio" interface: titled docked panels, beveled neutral-gray surfaces, a system typeface, and a red accent. The app icon and toolbar carry the new logo.
 
 - **Accent color** — choose the interface accent in **Preferences → Appearance** (red, blue, green, amber, purple, teal). It applies app-wide and is remembered.
 - **Resizable side panels** — drag the inner edge of either sidebar to make it wider or narrower; each side's width is remembered. The ‹ / › chevrons still collapse a sidebar entirely.

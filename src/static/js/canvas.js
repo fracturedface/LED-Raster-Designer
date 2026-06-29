@@ -1821,7 +1821,7 @@ class CanvasRenderer {
             if (window.app) window.app.pasteLayer();
         }
         
-        // Cmd/Ctrl+J - Duplicate (standard image editors standard)
+        // Cmd/Ctrl+J - Duplicate (standard)
         if ((e.metaKey || e.ctrlKey) && e.code === 'KeyJ' && !isTyping) {
             e.preventDefault();
             if (window.app && window.app.currentLayer) {
@@ -1937,7 +1937,7 @@ class CanvasRenderer {
             this.zoomActual();
         }
 
-        // Cmd/Ctrl+Shift+' - Toggle snap (standard image editors standard: Snap to Grid)
+        // Cmd/Ctrl+Shift+' - Toggle snap (standard: Snap to Grid)
         if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Quote' && !isTyping) {
             e.preventDefault();
             this.magneticSnap = !this.magneticSnap;
