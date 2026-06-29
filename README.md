@@ -34,7 +34,7 @@ Other devices on your local network can use the app by going to `http://[your-ip
 
 ## Features
 
-### Interface (new in v0.8.12)
+### Interface (new in v0.9)
 
 A clean, desktop-style "Studio" interface: titled docked panels, beveled neutral-gray surfaces, a system typeface, and a red accent. The app icon and toolbar carry the new logo.
 
