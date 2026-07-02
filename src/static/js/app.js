@@ -1237,6 +1237,7 @@ class LEDRasterApp {
             screenNameOffsetXShowLook: layer.screenNameOffsetXShowLook,
             screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
             gradientEnabled: layer.gradientEnabled,
+            transparentFill: layer.transparentFill,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -1454,6 +1455,7 @@ class LEDRasterApp {
                         if (layerProps.screenNameOffsetXShowLook !== undefined) layer.screenNameOffsetXShowLook = layerProps.screenNameOffsetXShowLook;
                         if (layerProps.screenNameOffsetYShowLook !== undefined) layer.screenNameOffsetYShowLook = layerProps.screenNameOffsetYShowLook;
                         if (layerProps.gradientEnabled !== undefined) layer.gradientEnabled = layerProps.gradientEnabled;
+                        if (layerProps.transparentFill !== undefined) layer.transparentFill = layerProps.transparentFill;
                         if (layerProps.gradientType !== undefined) layer.gradientType = layerProps.gradientType;
                         if (layerProps.gradientScope !== undefined) layer.gradientScope = layerProps.gradientScope;
                         if (layerProps.gradientPanelAlternate !== undefined) layer.gradientPanelAlternate = layerProps.gradientPanelAlternate;
@@ -1678,6 +1680,7 @@ class LEDRasterApp {
                 screenNameOffsetXShowLook: layer.screenNameOffsetXShowLook,
                 screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
                 gradientEnabled: layer.gradientEnabled,
+                transparentFill: layer.transparentFill,
                 gradientType: layer.gradientType,
                 gradientScope: layer.gradientScope,
                 gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -1705,6 +1708,7 @@ class LEDRasterApp {
             panelColorMode: layer.panelColorMode,
             panelColors: layer.panelColors,
             gradientEnabled: layer.gradientEnabled,
+            transparentFill: layer.transparentFill,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -3997,6 +4001,18 @@ class LEDRasterApp {
             if (isFinal) this.updateLayers(this.getSelectedLayers());
         });
 
+        // Transparent (no fill) override: render cabinets see-through so only
+        // borders and labels draw. Applies to Pixel Map / Show Look fills.
+        const transparentFillEl = document.getElementById('transparent-fill');
+        if (transparentFillEl) {
+            transparentFillEl.addEventListener('change', () => {
+                const checked = transparentFillEl.checked;
+                this.applyToSelectedLayers(layer => { layer.transparentFill = checked; });
+                window.canvasRenderer.render();
+                this.updateLayers(this.getSelectedLayers());
+            });
+        }
+
         // v0.8.7.8: gradient overlay editor (standard multi-stop).
         this.setupGradientEditor();
         // v0.8.7.8: multi-color cabinet palette editor.
@@ -4861,7 +4877,7 @@ class LEDRasterApp {
     }
 
     // A panel is "verified" if its `source` flags it as cross-checked against
-    // the manufacturer's published spec sheet/PDF rather than only the catalog's
+    // the manufacturer's published spec sheet/PDF rather than only the aggregated catalog's
     // (sometimes-outdated) internal database. Treats any source starting with
     // "official:" or containing "spec PDF" / "absen ... PDF" as verified.
     _isPanelVerified(p) {
@@ -4917,7 +4933,7 @@ class LEDRasterApp {
             if (p.weight_kg != null) specs.push(`${p.weight_kg}kg`);
             if (p.watts_max != null) specs.push(`${p.watts_max}W`);
             // Verified ⭐: panel specs were cross-checked against the manufacturer's
-            // own published spec sheet/PDF (not just an aggregated catalog).
+            // own published spec sheet/PDF (not just the aggregated catalog).
             const verified = this._isPanelVerified(p);
             const star = verified ? `<span title="Verified against ${this.escapeHtml(p.source || '')}" style="color:#f5c842; margin-right:4px;">⭐</span>` : '';
             const isFav = this._isCatalogFavorited(p._mfr, p.name);
@@ -7414,6 +7430,7 @@ class LEDRasterApp {
                 screenNameOffsetXShowLook: layer.screenNameOffsetXShowLook,
                 screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
                 gradientEnabled: layer.gradientEnabled,
+                transparentFill: layer.transparentFill,
                 gradientType: layer.gradientType,
                 gradientScope: layer.gradientScope,
                 gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -7441,6 +7458,7 @@ class LEDRasterApp {
             panelColorMode: layer.panelColorMode,
             panelColors: layer.panelColors,
             gradientEnabled: layer.gradientEnabled,
+            transparentFill: layer.transparentFill,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -8283,6 +8301,8 @@ class LEDRasterApp {
         if (document.getElementById('color2-hex')) {
             document.getElementById('color2-hex').value = hex2.toUpperCase();
         }
+        const transparentFillEl = document.getElementById('transparent-fill');
+        if (transparentFillEl) transparentFillEl.checked = !!this.currentLayer.transparentFill;
         // On Windows the visible element is a separate ".../-swatch" div (the
         // native input is hidden), and its background is otherwise only set
         // while editing. Refresh it here so selecting a layer always shows
@@ -14097,6 +14117,7 @@ class LEDRasterApp {
             screenNameOffsetXShowLook: layer.screenNameOffsetXShowLook,
             screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
             gradientEnabled: layer.gradientEnabled,
+            transparentFill: layer.transparentFill,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,

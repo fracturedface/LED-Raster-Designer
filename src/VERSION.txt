@@ -1,6 +1,15 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.9.1 - July 2, 2026
+----------------------------
+- FEATURE: Transparent fill. A "Transparent (no fill)" checkbox in the
+  Colors panel renders a screen's cabinets see-through — only the borders
+  and labels draw, no checkerboard/palette/gradient fill. Pairs with the
+  Export dialog's Transparent Background option for overlays. Saved per
+  screen with the project.
+
+
 v0.9.0.1 - June 28, 2026
 ----------------------------
 - FIX: In the Export dialog, checked checkboxes (canvases, views, options)
@@ -1116,31 +1125,21 @@ v0.7.4.26 - April 25, 2026
   the manufacturer's own published spec sheet/PDF show a star. Currently
   marks ~30 panels across Absen (JP, A3 Pro, A6T, VN), INFiLED (ART,
   AMT, DB), UniLumin (UGM), and Gloshine. Other catalog entries come from
-  an aggregated catalog, accurate but occasionally older than current specs.
+  aggregated public specs, accurate but occasionally older than current specs.
 - DATA: Power values for all 2,536 panels re-validated. The original
-  extraction missed a 110V voltage selection in the catalog for a chunk of
+  extraction missed a 110V voltage selection for a chunk of
   the catalog, leaving panels with corrupt watts (e.g. JP8 Pro showed
-  16.75W instead of the real ~480W). Re-ran the entire catalog through
-  the catalog's "Copy to Clipboard" output with 110V properly set, plus
+  16.75W instead of the real ~480W). Re-ran the entire catalog with 110V properly set, plus
   manually-applied PDF values for the JP series.
 - DATA: 12 phantom panels removed (Mambo-* entries that don't actually
-  exist in the catalog's menus).
-- INTERNAL: clipboard_extract.sh hardened, Escape-key recovery to
-  prevent the catalog popup wedge cascades, case-insensitive title verify,
-  abort-on-cascade detection, skip-on-missing-power so we never overwrite
-  good data with null. New post_batch.py + prep_no_source_batch.sh make
-  the maintenance loop a one-liner per batch.
+  exist in the catalog).
 - INTERNAL: app.py accepts --port N to run alongside other Flask apps.
 
 v0.7.4.25 - April 24, 2026
 ----------------------------
 - NEW: Built-in Panel Catalog now covers 2,543 panels across 180
-  manufacturers (up from ~1,400). Every panel in an aggregated catalog is
+  manufacturers (up from ~1,400). Every panel in the catalog is
   represented with width, height, pixel count, weight, and max power.
-- INTERNAL: Added internal tooling for maintaining the catalog,
-  a clipboard-based AppleScript pipeline that drives the catalog's Calculate
-  + Copy to Clipboard flow, parses the output, and merges into
-  src/static/data/panel_catalog.json.
 
 v0.7.4.24 - April 23, 2026
 ----------------------------

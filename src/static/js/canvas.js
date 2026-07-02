@@ -3198,12 +3198,14 @@ class CanvasRenderer {
         }
         
         // Base cabinet fill: 2-color checkerboard or multi-color palette.
-        this.ctx.fillStyle = this._panelBaseFill(panel, layer);
-
-        this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
-
-        // v0.8.7.8: gradient overlay on top of the checkerboard, below borders.
-        this._applyGradientOverlay(panel, layer);
+        // transparentFill = render cabinets see-through (no fill / no gradient);
+        // borders and labels still draw on top.
+        if (!layer.transparentFill) {
+            this.ctx.fillStyle = this._panelBaseFill(panel, layer);
+            this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
+            // v0.8.7.8: gradient overlay on top of the checkerboard, below borders.
+            this._applyGradientOverlay(panel, layer);
+        }
 
         // Panel borders — per-layer width in LED pixels, drawn INSIDE the
         // panel. Where two panels meet, you get 2× the width total.
@@ -3299,11 +3301,13 @@ class CanvasRenderer {
         }
         
         // Base cabinet fill: 2-color checkerboard or multi-color palette.
-        this.ctx.fillStyle = this._panelBaseFill(panel, layer);
-        this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
-
-        // v0.8.7.8: gradient overlay on top of the checkerboard, below borders.
-        this._applyGradientOverlay(panel, layer);
+        // transparentFill = render cabinets see-through (no fill / no gradient).
+        if (!layer.transparentFill) {
+            this.ctx.fillStyle = this._panelBaseFill(panel, layer);
+            this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
+            // v0.8.7.8: gradient overlay on top of the checkerboard, below borders.
+            this._applyGradientOverlay(panel, layer);
+        }
 
         // Panel borders — per-layer width, drawn INSIDE the panel.
         if (layer.show_panel_borders) {
