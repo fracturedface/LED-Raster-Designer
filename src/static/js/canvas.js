@@ -300,21 +300,18 @@ class CanvasRenderer {
         const swap = (deg === 90 || deg === 270);
         const fw = swap ? h : w;                          // footprint dims
         const fh = swap ? w : h;
-        let fpx = cx - fw / 2, fpy = cy - fh / 2;         // centered footprint top-left
-        // Nudge back inside the raster only if it fits at all.
-        if (fw <= this.rasterWidth) fpx = Math.max(0, Math.min(fpx, this.rasterWidth - fw));
-        if (fh <= this.rasterHeight) fpy = Math.max(0, Math.min(fpy, this.rasterHeight - fh));
-        return { deg, cx, cy, fw, fh, x: fpx, y: fpy, shiftX: fpx - (cx - fw / 2), shiftY: fpy - (cy - fh / 2) };
+        // Rotate in place — the footprint may extend off-canvas; off-canvas
+        // content is clipped at render time, never repositioned.
+        return { deg, cx, cy, fw, fh, x: cx - fw / 2, y: cy - fh / 2 };
     }
 
-    // Apply the screen's rotation (Pixel Map / Cabinet ID): rotate about the
-    // center, then shift so the footprint stays on-canvas.
+    // Apply the screen's rotation (Pixel Map / Cabinet ID): rotate in place
+    // about the screen center.
     // Returns true if a rotation was applied — the caller MUST ctx.restore().
     _beginLayerRotation(layer) {
         const g = this._layerRotationGeom(layer);
         if (g.deg !== 90 && g.deg !== 180 && g.deg !== 270) return false;
         this.ctx.save();
-        this.ctx.translate(g.shiftX, g.shiftY);
         this.ctx.translate(g.cx, g.cy);
         this.ctx.rotate(g.deg * Math.PI / 180);
         this.ctx.translate(-g.cx, -g.cy);
@@ -338,9 +335,9 @@ class CanvasRenderer {
     _unrotatePointForLayer(px, py, layer) {
         const g = this._layerRotationGeom(layer);
         if (g.deg !== 90 && g.deg !== 180 && g.deg !== 270) return { x: px, y: py };
-        // inverse of: display = shift + centerRotate(point)
-        const dx = px - g.shiftX - g.cx;
-        const dy = py - g.shiftY - g.cy;
+        // inverse of the in-place center rotation
+        const dx = px - g.cx;
+        const dy = py - g.cy;
         const rad = -g.deg * Math.PI / 180;
         const cos = Math.cos(rad), sin = Math.sin(rad);
         return { x: g.cx + (dx * cos - dy * sin), y: g.cy + (dx * sin + dy * cos) };
@@ -2592,8 +2589,19 @@ class CanvasRenderer {
                     // v0.9.3: screen rotation (Pixel Map / Cabinet ID only). Rotate
                     // the cabinets and all labels around the screen's center. The
                     // corner X,Y readouts stay upright — drawn after the restore.
-                    const _rotating = this._beginLayerRotation(layer);
-                    if (_rotating) this._layerRotating = true;
+                    const _rotDeg = this._layerRotationDeg(layer);
+                    const _rotating = (_rotDeg === 90 || _rotDeg === 180 || _rotDeg === 270);
+                    if (_rotating) {
+                        // Clip to the raster in UNROTATED (screen) space first, so any
+                        // rotated content that falls off-canvas simply isn't drawn —
+                        // the same clip rule unrotated screens have always had.
+                        this.ctx.save();
+                        this.ctx.beginPath();
+                        this.ctx.rect(-dx, -dy, this.rasterWidth, this.rasterHeight);
+                        this.ctx.clip();
+                        this._layerRotating = true;
+                        this._beginLayerRotation(layer);   // rotate in place (own save)
+                    }
 
                     layer.panels.forEach(panel => {
                         // Cheap early skip for panels entirely outside the raster.
@@ -2630,8 +2638,9 @@ class CanvasRenderer {
                     // v0.9.3: end the rotation before the corner readouts so the
                     // X,Y coordinates stay upright and unrotated.
                     if (_rotating) {
-                        this.ctx.restore();
+                        this.ctx.restore();          // pop the rotation transform
                         this._layerRotating = false;
+                        this.ctx.restore();          // pop the raster clip
                     }
 
                     // Render offsets / corner X,Y readouts (pixel-map only) — upright
@@ -5019,6 +5028,9 @@ class CanvasRenderer {
             ? window.app._getLayerWorkspaceOffset(layer) : { wx: 0, wy: 0 };
         this.ctx.save();
         if (wsOff.wx || wsOff.wy) this.ctx.translate(wsOff.wx, wsOff.wy);
+        // v0.9.3: rotate the highlight with the screen so it lands on the same
+        // panels the (rotated) render shows.
+        const _rot = this._beginLayerRotation(layer);
         this.ctx.lineWidth = 2 / this.zoom;
         selection.forEach(key => {
             const [row, col] = key.split(',').map(n => parseInt(n, 10));
@@ -5037,6 +5049,7 @@ class CanvasRenderer {
             this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
             this.ctx.strokeRect(panel.x, panel.y, panel.width, panel.height);
         });
+        if (_rot) this.ctx.restore();
         this.ctx.restore();
     }
 
