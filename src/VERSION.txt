@@ -1,12 +1,12 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
-v0.9.1.1 - July 6, 2026
+v0.9.2 - July 6, 2026
 ----------------------------
 - FIX: PSD export now preserves Transparent (no fill) screen interiors as
   real layer transparency. Exports keep the PSD document RGB, write the
   rendered alpha channel into each layer's transparency channel, and avoid
-  phantom layer-mask metadata that caused Affinity Photo mask warnings.
+  phantom layer-mask metadata that caused mask warnings in some PSD readers.
 
 
 v0.9.1 - July 2, 2026
