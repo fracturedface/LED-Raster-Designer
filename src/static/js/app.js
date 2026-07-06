@@ -11637,10 +11637,20 @@ class LEDRasterApp {
         // shift by the layer's parent canvas's workspace offset before
         // comparing. (No-op for single-canvas projects.)
         const off = this._getLayerWorkspaceOffset(layer);
-        const minX = Math.min(rect.x1, rect.x2) - off.wx;
-        const maxX = Math.max(rect.x1, rect.x2) - off.wx;
-        const minY = Math.min(rect.y1, rect.y2) - off.wy;
-        const maxY = Math.max(rect.y1, rect.y2) - off.wy;
+        let x1 = Math.min(rect.x1, rect.x2) - off.wx;
+        let x2 = Math.max(rect.x1, rect.x2) - off.wx;
+        let y1 = Math.min(rect.y1, rect.y2) - off.wy;
+        let y2 = Math.max(rect.y1, rect.y2) - off.wy;
+        // v0.9.3: if the screen is rotated, map the marquee back into the screen's
+        // unrotated panel space (rotation is 90/180/270, so it stays axis-aligned).
+        const _r = window.canvasRenderer;
+        if (_r && _r._unrotatePointForLayer) {
+            const corners = [[x1, y1], [x2, y1], [x1, y2], [x2, y2]]
+                .map(([x, y]) => _r._unrotatePointForLayer(x, y, layer));
+            x1 = Math.min(...corners.map(c => c.x)); x2 = Math.max(...corners.map(c => c.x));
+            y1 = Math.min(...corners.map(c => c.y)); y2 = Math.max(...corners.map(c => c.y));
+        }
+        const minX = x1, maxX = x2, minY = y1, maxY = y2;
         // Include hidden ("blank") panels so they can be selected for bulk
         // restore via the sidebar / Alt+click action.
         (layer.panels || []).forEach(panel => {

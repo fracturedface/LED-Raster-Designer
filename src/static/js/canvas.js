@@ -286,56 +286,64 @@ class CanvasRenderer {
         return ((((Number(layer && layer.rotation) || 0) % 360) + 360) % 360);
     }
 
-    // Apply the screen's rotation (Pixel Map / Cabinet ID). The rotated footprint
-    // is anchored at the screen's offset (top-left) so it stays inside the raster.
+    // v0.9.3: rotation geometry for a screen. Rotates AROUND THE SCREEN CENTER
+    // (rotate "in place"), then clamps the rotated footprint back inside the
+    // raster so it never renders off-canvas. `bounds` lets callers pass the
+    // active-view bounds; defaults to processor bounds. Every rotation consumer
+    // (render transform, footprint bounds, hit-test) goes through this so they
+    // always agree.
+    _layerRotationGeom(layer, bounds) {
+        const deg = this._layerRotationDeg(layer);
+        const b = bounds || this.getLayerBounds(layer);
+        const w = b.width, h = b.height;
+        const cx = b.x + w / 2, cy = b.y + h / 2;        // pivot = screen center
+        const swap = (deg === 90 || deg === 270);
+        const fw = swap ? h : w;                          // footprint dims
+        const fh = swap ? w : h;
+        let fpx = cx - fw / 2, fpy = cy - fh / 2;         // centered footprint top-left
+        // Nudge back inside the raster only if it fits at all.
+        if (fw <= this.rasterWidth) fpx = Math.max(0, Math.min(fpx, this.rasterWidth - fw));
+        if (fh <= this.rasterHeight) fpy = Math.max(0, Math.min(fpy, this.rasterHeight - fh));
+        return { deg, cx, cy, fw, fh, x: fpx, y: fpy, shiftX: fpx - (cx - fw / 2), shiftY: fpy - (cy - fh / 2) };
+    }
+
+    // Apply the screen's rotation (Pixel Map / Cabinet ID): rotate about the
+    // center, then shift so the footprint stays on-canvas.
     // Returns true if a rotation was applied — the caller MUST ctx.restore().
     _beginLayerRotation(layer) {
-        const deg = this._layerRotationDeg(layer);
-        if (deg !== 90 && deg !== 180 && deg !== 270) return false;
-        const b = this.getLayerBounds(layer);
-        const w = b.width, h = b.height;
-        const ucx = b.x + w / 2, ucy = b.y + h / 2;      // unrotated content center
-        const fw = (deg === 180) ? w : h;                 // footprint dims (swap for 90/270)
-        const fh = (deg === 180) ? h : w;
-        const rcx = b.x + fw / 2, rcy = b.y + fh / 2;     // footprint center, anchored at offset
+        const g = this._layerRotationGeom(layer);
+        if (g.deg !== 90 && g.deg !== 180 && g.deg !== 270) return false;
         this.ctx.save();
-        this.ctx.translate(rcx, rcy);
-        this.ctx.rotate(deg * Math.PI / 180);
-        this.ctx.translate(-ucx, -ucy);
+        this.ctx.translate(g.shiftX, g.shiftY);
+        this.ctx.translate(g.cx, g.cy);
+        this.ctx.rotate(g.deg * Math.PI / 180);
+        this.ctx.translate(-g.cx, -g.cy);
         return true;
     }
 
-    // v0.9.3: axis-aligned footprint of a (possibly rotated) screen, anchored at
-    // its offset; width/height swap for 90/270. Equals the bounds when unrotated.
+    // Axis-aligned footprint of a (possibly rotated) screen after the in-raster
+    // clamp; width/height swap for 90/270. Equals the bounds when unrotated.
     getLayerFootprintBounds(layer) {
-        const b = this.getLayerBounds(layer);
-        const deg = this._layerRotationDeg(layer);
-        if (deg === 90 || deg === 270) return { x: b.x, y: b.y, width: b.height, height: b.width };
-        return { x: b.x, y: b.y, width: b.width, height: b.height };
+        const g = this._layerRotationGeom(layer);
+        return { x: g.x, y: g.y, width: g.fw, height: g.fh };
     }
 
     getLayerFootprintInActiveView(layer) {
-        const b = this.getLayerBoundsInActiveView(layer);
-        const deg = this._layerRotationDeg(layer);
-        if (deg === 90 || deg === 270) return { x: b.x, y: b.y, width: b.height, height: b.width };
-        return { x: b.x, y: b.y, width: b.width, height: b.height };
+        const g = this._layerRotationGeom(layer, this.getLayerBoundsInActiveView(layer));
+        return { x: g.x, y: g.y, width: g.fw, height: g.fh };
     }
 
     // Map a point from rotated display space back to the screen's unrotated
     // content space, for panel hit-testing under rotation. Identity if unrotated.
     _unrotatePointForLayer(px, py, layer) {
-        const deg = this._layerRotationDeg(layer);
-        if (deg !== 90 && deg !== 180 && deg !== 270) return { x: px, y: py };
-        const b = this.getLayerBounds(layer);
-        const w = b.width, h = b.height;
-        const ucx = b.x + w / 2, ucy = b.y + h / 2;
-        const fw = (deg === 180) ? w : h;
-        const fh = (deg === 180) ? h : w;
-        const rcx = b.x + fw / 2, rcy = b.y + fh / 2;
-        const rad = -deg * Math.PI / 180;
-        const dx = px - rcx, dy = py - rcy;
+        const g = this._layerRotationGeom(layer);
+        if (g.deg !== 90 && g.deg !== 180 && g.deg !== 270) return { x: px, y: py };
+        // inverse of: display = shift + centerRotate(point)
+        const dx = px - g.shiftX - g.cx;
+        const dy = py - g.shiftY - g.cy;
+        const rad = -g.deg * Math.PI / 180;
         const cos = Math.cos(rad), sin = Math.sin(rad);
-        return { x: ucx + (dx * cos - dy * sin), y: ucy + (dx * sin + dy * cos) };
+        return { x: g.cx + (dx * cos - dy * sin), y: g.cy + (dx * sin + dy * cos) };
     }
 
     /**
