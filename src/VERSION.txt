@@ -71,9 +71,9 @@ Color picker: fix activation over the network.
 - FIX: The custom color picker is now gated on the BROWSER's OS, not the
   machine running the app. Previously it keyed off the server platform,
   so a Windows browser connecting over the LAN to a Mac-hosted app got
-  the plain native picker instead of the custom one. Now any non-Apple
+  the plain native picker instead of the custom one. Now any non-macOS
   client (Windows, Linux, ChromeOS) gets the custom picker regardless of
-  what OS is hosting the app; Apple clients keep their native picker.
+  what OS is hosting the app; macOS clients keep their native picker.
 
 v0.8.11.0 - June 26, 2026
 ----------------------------
@@ -82,7 +82,7 @@ Color picker: all five tabs complete (Windows color picker).
 - FEATURE: Color Wheel tab. An HSV wheel sets hue (angle) and
   saturation (radius); a Brightness slider below sets value. Click or
   drag the wheel to pick, drag the slider to brighten/darken.
-- FEATURE: Color Palettes tab. Pick from the Apple palette or the 216
+- FEATURE: Color Palettes tab. Pick from the System palette or the 216
   Web Safe colors as a named list, or save the current color to a
   persistent Custom palette with the + button.
 - FEATURE: Image Palettes tab. A spectrum image (hue across, white →
