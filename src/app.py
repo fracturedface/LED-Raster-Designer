@@ -20,6 +20,22 @@ import numpy as np
 # decompression bomb DOS attack".
 Image.MAX_IMAGE_PIXELS = None
 
+
+def _empty_psd_layer_mask(psd_layers):
+    """Create a no-op layer mask that serializes as absent mask data."""
+    class EmptyLayerMask(psd_layers.LayerMask):
+        def length(self, header):
+            return 0
+
+        def total_length(self, header):
+            return 4
+
+        def write(self, fd, header):
+            fd.write(b'\x00\x00\x00\x00')
+
+    return EmptyLayerMask()
+
+
 # Support PyInstaller --onedir bundle: resolve templates/static from _MEIPASS
 if getattr(sys, 'frozen', False):
     BASE_DIR = sys._MEIPASS
@@ -2876,8 +2892,10 @@ def export_psd_from_image():
         full_img = decode_base64_image(image_data)
         full_img = full_img.convert('RGBA')  # Convert to RGBA for alpha support
         
-        # Create PSD with alpha channel (4 channels: RGB + Alpha)
-        psd = PsdFile(num_channels=4, height=height, width=width, color_mode=ColorMode.rgb)
+        # Keep the merged document RGB; layer transparency is stored in each
+        # layer's -1 channel. Advertising a document alpha channel without
+        # merged alpha data triggers warnings in some PSD readers.
+        psd = PsdFile(num_channels=3, height=height, width=width, color_mode=ColorMode.rgb)
         
         layer_records = []
         
@@ -2915,7 +2933,7 @@ def export_psd_from_image():
             # Create ChannelImageData for RGB + Alpha
             # Channel -1 is the alpha/transparency mask
             channels = {
-                -1: psd_layers.ChannelImageData(image=np.full((actual_height, actual_width), 255, dtype=np.uint8), compression=Compression.raw),  # Full opacity
+                -1: psd_layers.ChannelImageData(image=img_array[:, :, 3].copy(), compression=Compression.raw),
                 0: psd_layers.ChannelImageData(image=img_array[:, :, 0].copy(), compression=Compression.raw),
                 1: psd_layers.ChannelImageData(image=img_array[:, :, 1].copy(), compression=Compression.raw),
                 2: psd_layers.ChannelImageData(image=img_array[:, :, 2].copy(), compression=Compression.raw),
@@ -2931,6 +2949,7 @@ def export_psd_from_image():
                 opacity=255,
                 channels=channels
             )
+            layer_record.mask = _empty_psd_layer_mask(psd_layers)
             layer_records.append(layer_record)
         
         psd.layer_and_mask_info.layer_info.layer_records = layer_records
@@ -2981,8 +3000,9 @@ def export_psd_zip_from_images():
                 view_name = img_info['name']
                 full_img = decode_base64_image(img_info['data']).convert('RGBA')
                 
-                # Create PSD with alpha channel
-                psd = PsdFile(num_channels=4, height=height, width=width, color_mode=ColorMode.rgb)
+                # Keep the merged document RGB; layer transparency is stored in
+                # each layer's -1 channel.
+                psd = PsdFile(num_channels=3, height=height, width=width, color_mode=ColorMode.rgb)
                 layer_records = []
                 
                 # Create a layer for each screen
@@ -3013,7 +3033,7 @@ def export_psd_zip_from_images():
                     
                     # Create ChannelImageData for RGB + Alpha
                     channels = {
-                        -1: psd_layers.ChannelImageData(image=np.full((actual_height, actual_width), 255, dtype=np.uint8), compression=Compression.raw),
+                        -1: psd_layers.ChannelImageData(image=img_array[:, :, 3].copy(), compression=Compression.raw),
                         0: psd_layers.ChannelImageData(image=img_array[:, :, 0].copy(), compression=Compression.raw),
                         1: psd_layers.ChannelImageData(image=img_array[:, :, 1].copy(), compression=Compression.raw),
                         2: psd_layers.ChannelImageData(image=img_array[:, :, 2].copy(), compression=Compression.raw),
@@ -3028,6 +3048,7 @@ def export_psd_zip_from_images():
                         opacity=255,
                         channels=channels
                     )
+                    layer_record.mask = _empty_psd_layer_mask(psd_layers)
                     layer_records.append(layer_record)
                 
                 psd.layer_and_mask_info.layer_info.layer_records = layer_records
