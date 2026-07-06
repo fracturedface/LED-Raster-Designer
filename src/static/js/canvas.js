@@ -268,11 +268,74 @@ class CanvasRenderer {
      * should use this instead of the raw raster rect.
      */
     _clipToActiveRaster() {
+        // v0.9.3: while a screen is rotated (Pixel Map / Cabinet ID) the raster
+        // rect would be repositioned in the rotated space and would trim the
+        // rotated content; skip it (the export canvas edge still bounds output).
+        if (this._layerRotating) return;
         const dx = this._renderDx || 0;
         const dy = this._renderDy || 0;
         this.ctx.beginPath();
         this.ctx.rect(-dx, -dy, this.rasterWidth, this.rasterHeight);
         this.ctx.clip();
+    }
+
+    // v0.9.3: the screen's rotation for the CURRENT view — 0/90/180/270, only in
+    // Pixel Map / Cabinet ID (other views never rotate).
+    _layerRotationDeg(layer) {
+        if (this.viewMode !== 'pixel-map' && this.viewMode !== 'cabinet-id') return 0;
+        return ((((Number(layer && layer.rotation) || 0) % 360) + 360) % 360);
+    }
+
+    // Apply the screen's rotation (Pixel Map / Cabinet ID). The rotated footprint
+    // is anchored at the screen's offset (top-left) so it stays inside the raster.
+    // Returns true if a rotation was applied — the caller MUST ctx.restore().
+    _beginLayerRotation(layer) {
+        const deg = this._layerRotationDeg(layer);
+        if (deg !== 90 && deg !== 180 && deg !== 270) return false;
+        const b = this.getLayerBounds(layer);
+        const w = b.width, h = b.height;
+        const ucx = b.x + w / 2, ucy = b.y + h / 2;      // unrotated content center
+        const fw = (deg === 180) ? w : h;                 // footprint dims (swap for 90/270)
+        const fh = (deg === 180) ? h : w;
+        const rcx = b.x + fw / 2, rcy = b.y + fh / 2;     // footprint center, anchored at offset
+        this.ctx.save();
+        this.ctx.translate(rcx, rcy);
+        this.ctx.rotate(deg * Math.PI / 180);
+        this.ctx.translate(-ucx, -ucy);
+        return true;
+    }
+
+    // v0.9.3: axis-aligned footprint of a (possibly rotated) screen, anchored at
+    // its offset; width/height swap for 90/270. Equals the bounds when unrotated.
+    getLayerFootprintBounds(layer) {
+        const b = this.getLayerBounds(layer);
+        const deg = this._layerRotationDeg(layer);
+        if (deg === 90 || deg === 270) return { x: b.x, y: b.y, width: b.height, height: b.width };
+        return { x: b.x, y: b.y, width: b.width, height: b.height };
+    }
+
+    getLayerFootprintInActiveView(layer) {
+        const b = this.getLayerBoundsInActiveView(layer);
+        const deg = this._layerRotationDeg(layer);
+        if (deg === 90 || deg === 270) return { x: b.x, y: b.y, width: b.height, height: b.width };
+        return { x: b.x, y: b.y, width: b.width, height: b.height };
+    }
+
+    // Map a point from rotated display space back to the screen's unrotated
+    // content space, for panel hit-testing under rotation. Identity if unrotated.
+    _unrotatePointForLayer(px, py, layer) {
+        const deg = this._layerRotationDeg(layer);
+        if (deg !== 90 && deg !== 180 && deg !== 270) return { x: px, y: py };
+        const b = this.getLayerBounds(layer);
+        const w = b.width, h = b.height;
+        const ucx = b.x + w / 2, ucy = b.y + h / 2;
+        const fw = (deg === 180) ? w : h;
+        const fh = (deg === 180) ? h : w;
+        const rcx = b.x + fw / 2, rcy = b.y + fh / 2;
+        const rad = -deg * Math.PI / 180;
+        const dx = px - rcx, dy = py - rcy;
+        const cos = Math.cos(rad), sin = Math.sin(rad);
+        return { x: ucx + (dx * cos - dy * sin), y: ucy + (dx * sin + dy * cos) };
     }
 
     /**
@@ -2021,8 +2084,11 @@ class CanvasRenderer {
             // canvas's workspace translate). Subtract both.
             const { dx, dy } = this.getLayerRenderOffset(layer);
             const { wx, wy } = this._layerCanvasOffset(layer);
-            const lx = worldX - dx - wx;
-            const ly = worldY - dy - wy;
+            // v0.9.3: undo the screen's rotation (Pixel Map / Cabinet ID) so the
+            // click maps back to the unrotated panel grid before hit-testing.
+            const up = this._unrotatePointForLayer(worldX - dx - wx, worldY - dy - wy, layer);
+            const lx = up.x;
+            const ly = up.y;
             for (const panel of layer.panels) {
                 // Don't skip hidden panels - they need to be clickable to toggle back
                 if (lx >= panel.x && lx <= panel.x + panel.width &&
@@ -2046,7 +2112,7 @@ class CanvasRenderer {
             // space; shift by the canvas's workspace_x/y so the comparison
             // against worldX/worldY (which are in workspace coords) is right
             // for canvases beyond the first.
-            const bounds = this.getLayerBoundsInActiveView(layer);
+            const bounds = this.getLayerFootprintInActiveView(layer);
             const { wx, wy } = this._layerCanvasOffset(layer);
             const bx = bounds.x + wx;
             const by = bounds.y + wy;
@@ -2514,10 +2580,18 @@ class CanvasRenderer {
                     // Look after a temporary raster shrink.
                     this._renderDx = dx;
                     this._renderDy = dy;
+
+                    // v0.9.3: screen rotation (Pixel Map / Cabinet ID only). Rotate
+                    // the cabinets and all labels around the screen's center. The
+                    // corner X,Y readouts stay upright — drawn after the restore.
+                    const _rotating = this._beginLayerRotation(layer);
+                    if (_rotating) this._layerRotating = true;
+
                     layer.panels.forEach(panel => {
-                        // Cheap early skip for panels entirely outside the
-                        // raster on the right or bottom in render space.
-                        if (panel.x + dx >= this.rasterWidth || panel.y + dy >= this.rasterHeight) return;
+                        // Cheap early skip for panels entirely outside the raster.
+                        // Skip this optimization while rotating — a rotated panel
+                        // may land inside the view even if its unrotated pos is out.
+                        if (!_rotating && (panel.x + dx >= this.rasterWidth || panel.y + dy >= this.rasterHeight)) return;
 
                         // Render all panels - visible and hidden (hidden as ghost outlines)
                         this.renderPanel(panel, layer);
@@ -2527,9 +2601,6 @@ class CanvasRenderer {
                     if (layer.show_circle_with_x && this.viewMode === 'pixel-map' && (layer.type || 'screen') !== 'image') {
                         this.renderCircleWithX(layer);
                     }
-
-                    // Render offsets (pixel-map only)
-                    this.renderLayerOffsets(layer);
 
                     // Render Cabinet ID numbers in world space (scales with zoom)
                     if (this.viewMode === 'cabinet-id') {
@@ -2547,6 +2618,17 @@ class CanvasRenderer {
                     // Render labels as part of each layer so upper layers naturally
                     // paint over lower layers' labels (no bleed-through)
                     this.renderLayerLabels(layer);
+
+                    // v0.9.3: end the rotation before the corner readouts so the
+                    // X,Y coordinates stay upright and unrotated.
+                    if (_rotating) {
+                        this.ctx.restore();
+                        this._layerRotating = false;
+                    }
+
+                    // Render offsets / corner X,Y readouts (pixel-map only) — upright
+                    this.renderLayerOffsets(layer);
+
                     if (needsShift) this.ctx.restore();
                 }
                 });
@@ -2620,7 +2702,7 @@ class CanvasRenderer {
                     if (!layer.visible) return;
                     if (!selectedIds.has(layer.id)) return;
                     _withLayerWs(layer, () => {
-                        const bounds = this.getLayerBoundsInActiveView(layer);
+                        const bounds = this.getLayerFootprintInActiveView(layer);
                         const layerWidth = bounds.width;
                         const layerHeight = bounds.height;
                         this.ctx.strokeStyle = (window.app.currentLayer && window.app.currentLayer.id === layer.id) ? '#00ccff' : '#4A90E2';
@@ -2637,7 +2719,7 @@ class CanvasRenderer {
                 const selectedLayer = window.app.currentLayer;
                 if (selectedLayer.visible) {
                     _withLayerWs(selectedLayer, () => {
-                        const bounds = this.getLayerBoundsInActiveView(selectedLayer);
+                        const bounds = this.getLayerFootprintInActiveView(selectedLayer);
                         const layerWidth = bounds.width;
                         const layerHeight = bounds.height;
 
@@ -2932,8 +3014,8 @@ class CanvasRenderer {
         let snappedX = offsetX;
         let snappedY = offsetY;
 
-        // Width/height are the same regardless of view; use raw bounds.
-        const currentBounds = this.getLayerBounds(currentLayer);
+        // v0.9.3: snap by the rotated footprint (width/height swap for 90/270).
+        const currentBounds = this.getLayerFootprintBounds(currentLayer);
         const layerWidth = currentBounds.width;
         const layerHeight = currentBounds.height;
         
@@ -2969,7 +3051,7 @@ class CanvasRenderer {
             window.app.project.layers.forEach(layer => {
                 if (layer.id === currentLayer.id || !layer.visible) return;
 
-                const otherBounds = this.getLayerBoundsInActiveView(layer);
+                const otherBounds = this.getLayerFootprintInActiveView(layer);
                 const otherLeft = otherBounds.x;
                 const otherRight = otherBounds.x + otherBounds.width;
                 const otherTop = otherBounds.y;
@@ -3030,24 +3112,30 @@ class CanvasRenderer {
         // offset places them inside the visible raster.
         const dx = this._renderDx || 0;
         const dy = this._renderDy || 0;
-        const rasterLeft = -dx;
-        const rasterTop = -dy;
-        const rasterRight = this.rasterWidth - dx;
-        const rasterBottom = this.rasterHeight - dy;
-        const clipX = Math.max(rasterLeft, panel.x);
-        const clipY = Math.max(rasterTop, panel.y);
-        const clipRight = Math.min(rasterRight, panel.x + panel.width);
-        const clipBottom = Math.min(rasterBottom, panel.y + panel.height);
-        const clipWidth = clipRight - clipX;
-        const clipHeight = clipBottom - clipY;
+        // v0.9.3: while the layer is rotated, skip the raster clip (its rect would
+        // be wrong in rotated space); the panel still draws inside its own bounds.
+        if (this._layerRotating) {
+            this.ctx.save();
+        } else {
+            const rasterLeft = -dx;
+            const rasterTop = -dy;
+            const rasterRight = this.rasterWidth - dx;
+            const rasterBottom = this.rasterHeight - dy;
+            const clipX = Math.max(rasterLeft, panel.x);
+            const clipY = Math.max(rasterTop, panel.y);
+            const clipRight = Math.min(rasterRight, panel.x + panel.width);
+            const clipBottom = Math.min(rasterBottom, panel.y + panel.height);
+            const clipWidth = clipRight - clipX;
+            const clipHeight = clipBottom - clipY;
 
-        if (clipWidth <= 0 || clipHeight <= 0) return;
-        
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.rect(clipX, clipY, clipWidth, clipHeight);
-        this.ctx.clip();
-        
+            if (clipWidth <= 0 || clipHeight <= 0) return;
+
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.rect(clipX, clipY, clipWidth, clipHeight);
+            this.ctx.clip();
+        }
+
         // Render based on view mode
         switch (this.viewMode) {
             case 'pixel-map':
@@ -4748,10 +4836,12 @@ class CanvasRenderer {
         this.ctx.save();
         this._clipToActiveRaster();
 
-        const bounds = this.getLayerBounds(layer);
+        // v0.9.3: use the rotated footprint so the corner X,Y readouts sit at the
+        // rotated screen's corners and report that orientation's coordinates.
+        const bounds = this.getLayerFootprintBounds(layer);
         const layerWidth = bounds.width;
         const layerHeight = bounds.height;
-        
+
         // Calculate actual corner positions
         // Since pixels are zero-indexed:
         // - Top-left starts at offset_x, offset_y (e.g., 0, 0)

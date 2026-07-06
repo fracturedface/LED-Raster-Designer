@@ -1238,6 +1238,7 @@ class LEDRasterApp {
             screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
             gradientEnabled: layer.gradientEnabled,
             transparentFill: layer.transparentFill,
+            rotation: layer.rotation,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -1456,6 +1457,7 @@ class LEDRasterApp {
                         if (layerProps.screenNameOffsetYShowLook !== undefined) layer.screenNameOffsetYShowLook = layerProps.screenNameOffsetYShowLook;
                         if (layerProps.gradientEnabled !== undefined) layer.gradientEnabled = layerProps.gradientEnabled;
                         if (layerProps.transparentFill !== undefined) layer.transparentFill = layerProps.transparentFill;
+                        if (layerProps.rotation !== undefined) layer.rotation = layerProps.rotation;
                         if (layerProps.gradientType !== undefined) layer.gradientType = layerProps.gradientType;
                         if (layerProps.gradientScope !== undefined) layer.gradientScope = layerProps.gradientScope;
                         if (layerProps.gradientPanelAlternate !== undefined) layer.gradientPanelAlternate = layerProps.gradientPanelAlternate;
@@ -1681,6 +1683,7 @@ class LEDRasterApp {
                 screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
                 gradientEnabled: layer.gradientEnabled,
                 transparentFill: layer.transparentFill,
+                rotation: layer.rotation,
                 gradientType: layer.gradientType,
                 gradientScope: layer.gradientScope,
                 gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -1709,6 +1712,7 @@ class LEDRasterApp {
             panelColors: layer.panelColors,
             gradientEnabled: layer.gradientEnabled,
             transparentFill: layer.transparentFill,
+            rotation: layer.rotation,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -4008,6 +4012,17 @@ class LEDRasterApp {
             transparentFillEl.addEventListener('change', () => {
                 const checked = transparentFillEl.checked;
                 this.applyToSelectedLayers(layer => { layer.transparentFill = checked; });
+                window.canvasRenderer.render();
+                this.updateLayers(this.getSelectedLayers());
+            });
+        }
+
+        // v0.9.3: screen rotation (Pixel Map / Cabinet ID). 0/90/180/270.
+        const screenRotationEl = document.getElementById('screen-rotation');
+        if (screenRotationEl) {
+            screenRotationEl.addEventListener('change', () => {
+                const deg = parseInt(screenRotationEl.value, 10) || 0;
+                this.applyToSelectedLayers(layer => { layer.rotation = deg; });
                 window.canvasRenderer.render();
                 this.updateLayers(this.getSelectedLayers());
             });
@@ -7431,6 +7446,7 @@ class LEDRasterApp {
                 screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
                 gradientEnabled: layer.gradientEnabled,
                 transparentFill: layer.transparentFill,
+                rotation: layer.rotation,
                 gradientType: layer.gradientType,
                 gradientScope: layer.gradientScope,
                 gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -7459,6 +7475,7 @@ class LEDRasterApp {
             panelColors: layer.panelColors,
             gradientEnabled: layer.gradientEnabled,
             transparentFill: layer.transparentFill,
+            rotation: layer.rotation,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
@@ -8303,6 +8320,8 @@ class LEDRasterApp {
         }
         const transparentFillEl = document.getElementById('transparent-fill');
         if (transparentFillEl) transparentFillEl.checked = !!this.currentLayer.transparentFill;
+        const screenRotationEl = document.getElementById('screen-rotation');
+        if (screenRotationEl) screenRotationEl.value = String((((Number(this.currentLayer.rotation) || 0) % 360) + 360) % 360);
         // On Windows the visible element is a separate ".../-swatch" div (the
         // native input is hidden), and its background is otherwise only set
         // while editing. Refresh it here so selecting a layer always shows
@@ -14118,6 +14137,7 @@ class LEDRasterApp {
             screenNameOffsetYShowLook: layer.screenNameOffsetYShowLook,
             gradientEnabled: layer.gradientEnabled,
             transparentFill: layer.transparentFill,
+            rotation: layer.rotation,
             gradientType: layer.gradientType,
             gradientScope: layer.gradientScope,
             gradientPanelAlternate: layer.gradientPanelAlternate,
