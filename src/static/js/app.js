@@ -7733,12 +7733,14 @@ class LEDRasterApp {
                 const linkedX = Number(layer.showOffsetX ?? layer.offset_x ?? 0) === Number(layer.offset_x ?? 0);
                 const linkedY = Number(layer.showOffsetY ?? layer.offset_y ?? 0) === Number(layer.offset_y ?? 0);
                 if (applyOffsetX) {
-                    layer.offset_x = offsetXVal;
-                    if (linkedX) layer.showOffsetX = offsetXVal;
+                    // v0.9.3: the field shows the rotated footprint's left; convert
+                    // back to the stored (unrotated) offset.
+                    layer.offset_x = offsetXVal - window.canvasRenderer.getLayerFootprintOffset(layer).dx;
+                    if (linkedX) layer.showOffsetX = layer.offset_x;
                 }
                 if (applyOffsetY) {
-                    layer.offset_y = offsetYVal;
-                    if (linkedY) layer.showOffsetY = offsetYVal;
+                    layer.offset_y = offsetYVal - window.canvasRenderer.getLayerFootprintOffset(layer).dy;
+                    if (linkedY) layer.showOffsetY = layer.offset_y;
                 }
                 if (applyShowOffsetX) layer.showOffsetX = showOffsetXVal;
                 if (applyShowOffsetY) layer.showOffsetY = showOffsetYVal;
@@ -7872,8 +7874,10 @@ class LEDRasterApp {
             }
         };
 
-        setTextInput('offset-x', getCommon(l => l.offset_x));
-        setTextInput('offset-y', getCommon(l => l.offset_y));
+        // v0.9.3: show the rotated footprint's top-left (offset + delta) so the
+        // Screen Info X,Y matches where the rotated screen actually sits.
+        setTextInput('offset-x', getCommon(l => Math.round((Number(l.offset_x) || 0) + window.canvasRenderer.getLayerFootprintOffset(l).dx)));
+        setTextInput('offset-y', getCommon(l => Math.round((Number(l.offset_y) || 0) + window.canvasRenderer.getLayerFootprintOffset(l).dy)));
         // Show Look offsets, separate from processor offsets (Pixel Map).
         setTextInput('show-offset-x', getCommon(l => (l.showOffsetX ?? l.offset_x) || 0));
         setTextInput('show-offset-y', getCommon(l => (l.showOffsetY ?? l.offset_y) || 0));

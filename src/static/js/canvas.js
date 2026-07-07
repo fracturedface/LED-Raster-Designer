@@ -330,6 +330,17 @@ class CanvasRenderer {
         return { x: g.x, y: g.y, width: g.fw, height: g.fh };
     }
 
+    // v0.9.3: how far the rotated footprint's top-left sits from the screen's
+    // stored offset (0 unless rotated 90/270). Screen Info shows offset + this so
+    // the displayed X,Y matches the rotated screen's actual top-left; edits are
+    // converted back. Uses layer.rotation directly (not the current view).
+    getLayerFootprintOffset(layer) {
+        const deg = (((Number(layer && layer.rotation) || 0) % 360) + 360) % 360;
+        if (deg !== 90 && deg !== 270) return { dx: 0, dy: 0 };
+        const b = this.getLayerBounds(layer);
+        return { dx: (b.width - b.height) / 2, dy: (b.height - b.width) / 2 };
+    }
+
     // Map a point from rotated display space back to the screen's unrotated
     // content space, for panel hit-testing under rotation. Identity if unrotated.
     _unrotatePointForLayer(px, py, layer) {
