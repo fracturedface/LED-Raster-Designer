@@ -2619,10 +2619,9 @@ class CanvasRenderer {
                         this.ctx.rect(-dx, -dy, this.rasterWidth, this.rasterHeight);
                         this.ctx.clip();
                         this._layerRotating = true;
-                        // On Data / Power the panels and arrows rotate but text
-                        // labels are kept upright (counter-rotated in _fillText).
+                        // Angle used to keep specific labels upright (Data/Power
+                        // technical labels only) — see _fillText / _keepTextUpright.
                         this._activeRotationRad = _rotDeg * Math.PI / 180;
-                        this._keepTextUpright = (this.viewMode === 'data-flow' || this.viewMode === 'power');
                         this._beginLayerRotation(layer);   // rotate in place (own save)
                     }
 
@@ -2646,16 +2645,22 @@ class CanvasRenderer {
                         this.renderCabinetIDNumbers(layer);
                     }
 
-                    // Render Data Flow arrows (serpentine path with P1/R1 labels)
+                    // Data/Power flow arrows rotate with the panels, but their
+                    // technical labels (P1/R1, port/circuit info) stay upright.
                     if (this.viewMode === 'data-flow') {
+                        this._keepTextUpright = _rotating;
                         this.renderDataFlowArrows(layer);
+                        this._keepTextUpright = false;
                     }
                     if (this.viewMode === 'power') {
+                        this._keepTextUpright = _rotating;
                         this.renderPowerArrows(layer);
+                        this._keepTextUpright = false;
                     }
 
                     // Render labels as part of each layer so upper layers naturally
-                    // paint over lower layers' labels (no bleed-through)
+                    // paint over lower layers' labels (no bleed-through). The screen
+                    // name rotates with the screen (keepTextUpright is off here).
                     this.renderLayerLabels(layer);
 
                     // v0.9.3: end the rotation before the corner readouts so the
