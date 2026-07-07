@@ -1,6 +1,23 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.9.3 - July 6, 2026
+----------------------------
+- FEATURE: Rotate a screen 90/180/270 (Screen Info -> Rotation). The screen
+  rotates in place across every view; content that falls outside the raster
+  is clipped, not moved.
+  - Pixel Map / Cabinet ID: cabinets and labels rotate; the corner X,Y
+    readouts stay upright, and Screen Info Offset X/Y shows the rotated
+    position.
+  - Show Look: rotates with the screen.
+  - Data / Power: cabinets, flow arrows, and the screen name rotate; the
+    port/circuit labels stay upright for readability.
+  - Selection, click/drag, panel blank/half/hide, and magnetic snap all
+    follow the rotation. PNG/PSD exports render rotated.
+- Magnetic snap is stronger and stays consistent across zoom levels.
+- Larger app logo in the toolbar.
+
+
 v0.9.2 - July 6, 2026
 ----------------------------
 - FIX: PSD export now preserves Transparent (no fill) screen interiors as
