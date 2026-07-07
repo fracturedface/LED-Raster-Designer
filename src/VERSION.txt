@@ -1,6 +1,19 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.9.4 - July 6, 2026
+----------------------------
+- FEATURE: Built-in guided tours.
+  - Quick Start Guide: shows automatically the first time you open the app,
+    with a short spotlight walkthrough of the main areas. Skip at any time,
+    or check "Don't show on startup" to turn off auto-launch. Reopen it from
+    Help -> Quick Start Guide.
+  - Advanced Guide: a full, optional step-by-step walkthrough of the whole
+    app, including the five views, per-panel editing, multi-canvas, data and
+    power planning, snap, and export. Offered at the end of the Quick Start,
+    and available any time from Help -> Advanced Guide.
+- Both guides are fully offline and self-contained (no internet needed).
+
 v0.9.3 - July 6, 2026
 ----------------------------
 - FEATURE: Rotate a screen 90/180/270 (Screen Info -> Rotation). The screen

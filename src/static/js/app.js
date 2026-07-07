@@ -10306,6 +10306,9 @@ class LEDRasterApp {
             case 'quick-start':
                 if (window.QuickStart) window.QuickStart.start();
                 break;
+            case 'advanced-guide':
+                if (window.QuickStart) window.QuickStart.startAdvanced();
+                break;
             case 'keyboard-shortcuts':
                 this.openShortcutsModal();
                 break;
