@@ -3027,43 +3027,33 @@ class CanvasRenderer {
     }
 
     calculateMagneticSnap(offsetX, offsetY, currentLayer) {
-        const snapDistance = 20; // Snap within 20 pixels - feels natural
+        // Stronger, zoom-consistent snap zone (~34 screen px regardless of zoom).
+        const snapDistance = 34 / (this.zoom || 1);
         let snappedX = offsetX;
         let snappedY = offsetY;
 
-        // v0.9.3: snap by the rotated footprint (width/height swap for 90/270).
-        const currentBounds = this.getLayerFootprintBounds(currentLayer);
-        const layerWidth = currentBounds.width;
-        const layerHeight = currentBounds.height;
-        
-        const currentLeft = offsetX;
-        const currentRight = offsetX + layerWidth;
-        const currentTop = offsetY;
-        const currentBottom = offsetY + layerHeight;
-        
-        
-        // Snap to raster boundaries - HARD EDGES ONLY
-        // Left edge to 0
-        if (Math.abs(currentLeft - 0) <= snapDistance) {
-            snappedX = 0;
-        }
-        // Right edge to raster width
-        if (Math.abs(currentRight - this.rasterWidth) <= snapDistance) {
-            snappedX = this.rasterWidth - layerWidth;
-        }
-        // Top edge to 0
-        if (Math.abs(currentTop - 0) <= snapDistance) {
-            snappedY = 0;
-        }
-        // Bottom edge to raster height
-        if (Math.abs(currentBottom - this.rasterHeight) <= snapDistance) {
-            snappedY = this.rasterHeight - layerHeight;
-        }
-        
-        // Snap to other layers - HARD EDGES ONLY
-        // Other layers' bounds are compared against the dragged layer's
-        // proposed offset (offsetX/Y), which is in the active view's
-        // coords, so use active-view bounds for the comparison.
+        // v0.9.3: snap by the rotated FOOTPRINT. It's centered on the screen, so
+        // its top-left sits at offset + fpD (fpD = 0 when unrotated). We snap the
+        // footprint edges, then convert the result back to the layer offset.
+        const b = this.getLayerBounds(currentLayer);
+        const swap = this._layerRotationDeg(currentLayer) === 90 || this._layerRotationDeg(currentLayer) === 270;
+        const layerWidth = swap ? b.height : b.width;
+        const layerHeight = swap ? b.width : b.height;
+        const fpDx = (b.width - layerWidth) / 2;
+        const fpDy = (b.height - layerHeight) / 2;
+
+        const currentLeft = offsetX + fpDx;
+        const currentRight = currentLeft + layerWidth;
+        const currentTop = offsetY + fpDy;
+        const currentBottom = currentTop + layerHeight;
+
+        // Snap to raster boundaries — HARD EDGES ONLY
+        if (Math.abs(currentLeft - 0) <= snapDistance) snappedX = 0 - fpDx;
+        if (Math.abs(currentRight - this.rasterWidth) <= snapDistance) snappedX = this.rasterWidth - layerWidth - fpDx;
+        if (Math.abs(currentTop - 0) <= snapDistance) snappedY = 0 - fpDy;
+        if (Math.abs(currentBottom - this.rasterHeight) <= snapDistance) snappedY = this.rasterHeight - layerHeight - fpDy;
+
+        // Snap to other layers' footprints — HARD EDGES ONLY
         if (window.app && window.app.project) {
             window.app.project.layers.forEach(layer => {
                 if (layer.id === currentLayer.id || !layer.visible) return;
@@ -3073,26 +3063,22 @@ class CanvasRenderer {
                 const otherRight = otherBounds.x + otherBounds.width;
                 const otherTop = otherBounds.y;
                 const otherBottom = otherBounds.y + otherBounds.height;
-                
-                // Snap any edge of current layer to any edge of other layer
+
                 // Left edge snaps
-                if (Math.abs(currentLeft - otherLeft) <= snapDistance) snappedX = otherLeft;
-                if (Math.abs(currentLeft - otherRight) <= snapDistance) snappedX = otherRight;
-                
+                if (Math.abs(currentLeft - otherLeft) <= snapDistance) snappedX = otherLeft - fpDx;
+                if (Math.abs(currentLeft - otherRight) <= snapDistance) snappedX = otherRight - fpDx;
                 // Right edge snaps
-                if (Math.abs(currentRight - otherLeft) <= snapDistance) snappedX = otherLeft - layerWidth;
-                if (Math.abs(currentRight - otherRight) <= snapDistance) snappedX = otherRight - layerWidth;
-                
+                if (Math.abs(currentRight - otherLeft) <= snapDistance) snappedX = otherLeft - layerWidth - fpDx;
+                if (Math.abs(currentRight - otherRight) <= snapDistance) snappedX = otherRight - layerWidth - fpDx;
                 // Top edge snaps
-                if (Math.abs(currentTop - otherTop) <= snapDistance) snappedY = otherTop;
-                if (Math.abs(currentTop - otherBottom) <= snapDistance) snappedY = otherBottom;
-                
+                if (Math.abs(currentTop - otherTop) <= snapDistance) snappedY = otherTop - fpDy;
+                if (Math.abs(currentTop - otherBottom) <= snapDistance) snappedY = otherBottom - fpDy;
                 // Bottom edge snaps
-                if (Math.abs(currentBottom - otherTop) <= snapDistance) snappedY = otherTop - layerHeight;
-                if (Math.abs(currentBottom - otherBottom) <= snapDistance) snappedY = otherBottom - layerHeight;
+                if (Math.abs(currentBottom - otherTop) <= snapDistance) snappedY = otherTop - layerHeight - fpDy;
+                if (Math.abs(currentBottom - otherBottom) <= snapDistance) snappedY = otherBottom - layerHeight - fpDy;
             });
         }
-        
+
         return { x: Math.round(snappedX), y: Math.round(snappedY) };
     }
     
