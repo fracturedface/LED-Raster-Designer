@@ -246,6 +246,10 @@
 
     function maybeAutoShow() {
         if (disabled()) return;
+        // Never auto-show inside an automated browser (Playwright/Selenium set
+        // navigator.webdriver). The tour's click-catcher would otherwise block
+        // E2E tests. Real users are unaffected; they can still open it manually.
+        if (navigator.webdriver) return;
         var tries = 0;
         var t = setInterval(function () {
             tries++;

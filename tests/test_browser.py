@@ -79,6 +79,11 @@ def page(server, browser_name):
         launcher = getattr(p, browser_name)
         browser = launcher.launch(headless=True)
         context = browser.new_context()
+        # Keep the first-run Quick Start tour from auto-showing; its click-catch
+        # overlay would otherwise intercept pointer events during the tests.
+        context.add_init_script(
+            "try{localStorage.setItem('lrd_quickstart_disabled','1');}catch(e){}"
+        )
         pg = context.new_page()
         pg.goto(server, wait_until='domcontentloaded')
         # Give SocketIO time to connect and initialize app
