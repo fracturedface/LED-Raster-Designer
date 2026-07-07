@@ -1109,7 +1109,7 @@ def panel_catalog_refresh():
 # ── System fonts (enumerate fonts installed on this machine) ──
 # The server runs locally with OS access, so it can read the user's installed
 # fonts and hand the real family names to the UI. The browser (on the same
-# machine) can then render any of them in canvas — no need to bundle fonts.
+# machine) can then render any of them in canvas, no need to bundle fonts.
 # Works on every browser (unlike the Chromium-only Local Font Access API).
 import threading as _threading
 
@@ -2730,7 +2730,7 @@ def native_dialog_write_file():
         on the client when the blob exceeds ~25 MB).
       - multipart/form-data with `path` field and `file` field (v0.8.7+).
         This skips the JSON string allocation and is the only path large PSD
-        exports survive — the client streams the raw blob to the server.
+        exports survive, the client streams the raw blob to the server.
     """
     file_path = None
     content = None

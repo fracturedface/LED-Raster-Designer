@@ -192,7 +192,7 @@ class CanvasRenderer {
         // v0.8.6: perspective is fully per-canvas. The legacy global-mirror
         // path is gone (each canvas applies its own mirror inside the render
         // loop). This now answers "is ANY visible canvas mirrored in the
-        // current view" — used to gate the BACK VIEW badge layer and to
+        // current view", used to gate the BACK VIEW badge layer and to
         // short-circuit hit-test unmirror when nothing is mirrored.
         if (this.viewMode !== 'data-flow' && this.viewMode !== 'power') return false;
         if (!window.app || !window.app.project) return false;
@@ -285,12 +285,12 @@ class CanvasRenderer {
         this.ctx.clip();
     }
 
-    // v0.9.3: the screen's rotation for the CURRENT view — 0/90/180/270, only in
+    // v0.9.3: the screen's rotation for the CURRENT view, 0/90/180/270, only in
     // Pixel Map / Cabinet ID (other views never rotate).
     _layerRotationDeg(layer) {
         // v0.9.3: rotation applies to every screen view (Pixel Map, Cabinet ID,
         // Show Look, Data, Power). On Data/Power the panels/arrows rotate but the
-        // text labels are kept upright — see _fillText / _keepTextUpright.
+        // text labels are kept upright, see _fillText / _keepTextUpright.
         return ((((Number(layer && layer.rotation) || 0) % 360) + 360) % 360);
     }
 
@@ -308,14 +308,14 @@ class CanvasRenderer {
         const swap = (deg === 90 || deg === 270);
         const fw = swap ? h : w;                          // footprint dims
         const fh = swap ? w : h;
-        // Rotate in place — the footprint may extend off-canvas; off-canvas
+        // Rotate in place, the footprint may extend off-canvas; off-canvas
         // content is clipped at render time, never repositioned.
         return { deg, cx, cy, fw, fh, x: cx - fw / 2, y: cy - fh / 2 };
     }
 
     // Apply the screen's rotation (Pixel Map / Cabinet ID): rotate in place
     // about the screen center.
-    // Returns true if a rotation was applied — the caller MUST ctx.restore().
+    // Returns true if a rotation was applied, the caller MUST ctx.restore().
     _beginLayerRotation(layer) {
         const g = this._layerRotationGeom(layer);
         if (g.deg !== 90 && g.deg !== 180 && g.deg !== 270) return false;
@@ -516,7 +516,7 @@ class CanvasRenderer {
     // is flipped horizontally for display only. Mouse coordinates are still
     // in un-mirrored screen space, so we have to flip them back into layer
     // coordinates before any hit-testing / drag math. v0.8.6: per-canvas
-    // — find the canvas under the cursor and mirror around its own right
+    //, find the canvas under the cursor and mirror around its own right
     // edge. Points outside any canvas (or over an unmirrored canvas) pass
     // through unchanged.
     _unmirrorWorldX(worldX, worldY) {
@@ -551,7 +551,7 @@ class CanvasRenderer {
     /**
      * Legacy mirror axis for pre-Slice-1 single-canvas projects only.
      * Multi-canvas projects (v0.8+) mirror per-canvas around each canvas's
-     * own right edge — see _unmirrorWorldX and the per-canvas mirror block
+     * own right edge, see _unmirrorWorldX and the per-canvas mirror block
      * inside the render loop.
      */
     _mirrorAxisX() {
@@ -639,11 +639,11 @@ class CanvasRenderer {
 
         // v0.8.7.7: plain-click directly on a screen-name label starts a
         // screen-name drag (no modifier needed). This is the universal
-        // "grab the label" gesture across every tab — Pixel Map, Cabinet
+        // "grab the label" gesture across every tab, Pixel Map, Cabinet
         // ID, Data Flow, Power. The label rect is cached on the layer by
         // renderLayerLabels at draw time so this hit-test stays in sync
         // with what's drawn. Only checks the active currentLayer's label
-        // — clicking some other layer's label still needs Shift / etc.
+        //, clicking some other layer's label still needs Shift / etc.
         if (e.button === 0 && !this.spacePressed && !e.altKey && !e.shiftKey
                 && !e.metaKey && !e.ctrlKey
                 && window.app && window.app.currentLayer
@@ -1689,7 +1689,7 @@ class CanvasRenderer {
                         if (isShowMode) {
                             // Show Look drag: persist the freshly-dragged
                             // showOffsetX/Y first (no saveState on this PUT
-                            // — the moveLayerShowCanvas .then() will snapshot
+                            //, the moveLayerShowCanvas .then() will snapshot
                             // post-everything state), then PUT show_canvas_id
                             // so canvas_id, offset_x/y, panels stay put.
                             // Duplicate is not supported here (mode is
@@ -2415,7 +2415,7 @@ class CanvasRenderer {
         // global-mirror block here used to flip the entire workspace
         // around the bbox right edge, which forced every canvas into the
         // same perspective. _fillText / _strokeText still key off
-        // this._mirror — that flag is now toggled on/off per canvas as the
+        // this._mirror, that flag is now toggled on/off per canvas as the
         // loop enters/exits each canvas's draw scope.
         this._mirror = false;
         // Legacy single-canvas projects (no canvases array) keep the old
@@ -2471,7 +2471,7 @@ class CanvasRenderer {
             const { wx, wy } = _layerWs(layer);
             // v0.8.6: post-passes (capacity error overlay, selection
             // bounds) run AFTER the per-canvas render loop popped its
-            // mirror, so re-apply the layer's canvas mirror here too —
+            // mirror, so re-apply the layer's canvas mirror here too -
             // otherwise overlays render in un-mirrored space and float
             // detached from the layer they're badging.
             const _cid = this._effectiveLayerCanvasId(layer);
@@ -2522,7 +2522,7 @@ class CanvasRenderer {
                     // v0.8.5: in Show Look / Data / Power, group by the
                     // layer's effective show canvas (show_canvas_id ||
                     // canvas_id). Pixel Map / Cabinet ID still group by
-                    // canvas_id — the helper handles the view-mode pick.
+                    // canvas_id, the helper handles the view-mode pick.
                     return this._effectiveLayerCanvasId(l) === canvas.id;
                 });
                 // Empty canvases (no layers) still get drawn, outline +
@@ -2607,12 +2607,12 @@ class CanvasRenderer {
 
                     // v0.9.3: screen rotation (Pixel Map / Cabinet ID only). Rotate
                     // the cabinets and all labels around the screen's center. The
-                    // corner X,Y readouts stay upright — drawn after the restore.
+                    // corner X,Y readouts stay upright, drawn after the restore.
                     const _rotDeg = this._layerRotationDeg(layer);
                     const _rotating = (_rotDeg === 90 || _rotDeg === 180 || _rotDeg === 270);
                     if (_rotating) {
                         // Clip to the raster in UNROTATED (screen) space first, so any
-                        // rotated content that falls off-canvas simply isn't drawn —
+                        // rotated content that falls off-canvas simply isn't drawn -
                         // the same clip rule unrotated screens have always had.
                         this.ctx.save();
                         this.ctx.beginPath();
@@ -2620,14 +2620,14 @@ class CanvasRenderer {
                         this.ctx.clip();
                         this._layerRotating = true;
                         // Angle used to keep specific labels upright (Data/Power
-                        // technical labels only) — see _fillText / _keepTextUpright.
+                        // technical labels only), see _fillText / _keepTextUpright.
                         this._activeRotationRad = _rotDeg * Math.PI / 180;
                         this._beginLayerRotation(layer);   // rotate in place (own save)
                     }
 
                     layer.panels.forEach(panel => {
                         // Cheap early skip for panels entirely outside the raster.
-                        // Skip this optimization while rotating — a rotated panel
+                        // Skip this optimization while rotating, a rotated panel
                         // may land inside the view even if its unrotated pos is out.
                         if (!_rotating && (panel.x + dx >= this.rasterWidth || panel.y + dy >= this.rasterHeight)) return;
 
@@ -2673,7 +2673,7 @@ class CanvasRenderer {
                         this.ctx.restore();          // pop the raster clip
                     }
 
-                    // Render offsets / corner X,Y readouts (pixel-map only) — upright
+                    // Render offsets / corner X,Y readouts (pixel-map only), upright
                     this.renderLayerOffsets(layer);
 
                     if (needsShift) this.ctx.restore();
@@ -3077,13 +3077,13 @@ class CanvasRenderer {
         const currentTop = offsetY + fpDy;
         const currentBottom = currentTop + layerHeight;
 
-        // Snap to raster boundaries — HARD EDGES ONLY
+        // Snap to raster boundaries, HARD EDGES ONLY
         if (Math.abs(currentLeft - 0) <= snapDistance) snappedX = 0 - fpDx;
         if (Math.abs(currentRight - this.rasterWidth) <= snapDistance) snappedX = this.rasterWidth - layerWidth - fpDx;
         if (Math.abs(currentTop - 0) <= snapDistance) snappedY = 0 - fpDy;
         if (Math.abs(currentBottom - this.rasterHeight) <= snapDistance) snappedY = this.rasterHeight - layerHeight - fpDy;
 
-        // Snap to other layers' footprints — HARD EDGES ONLY
+        // Snap to other layers' footprints, HARD EDGES ONLY
         if (window.app && window.app.project) {
             window.app.project.layers.forEach(layer => {
                 if (layer.id === currentLayer.id || !layer.visible) return;
@@ -3291,7 +3291,7 @@ class CanvasRenderer {
         let grad;
         if (layer.gradientScope === 'panel') {
             // Mirror the gradient on alternating COLUMNS (a whole column shares
-            // one orientation; every other column flips) — the SUPERTASK wave.
+            // one orientation; every other column flips), the SUPERTASK wave.
             const invert = !!layer.gradientPanelAlternate
                 && ((Number(panel.col) || 0) % 2 === 1);
             grad = this._buildGradientForRect(layer, panel.x, panel.y, panel.width, panel.height, invert);
@@ -3328,7 +3328,7 @@ class CanvasRenderer {
             this._applyGradientOverlay(panel, layer);
         }
 
-        // Panel borders — per-layer width in LED pixels, drawn INSIDE the
+        // Panel borders, per-layer width in LED pixels, drawn INSIDE the
         // panel. Where two panels meet, you get 2× the width total.
         if (layer.show_panel_borders) {
             const bw = Math.max(1, Number(layer.panel_border_width) || 2);
@@ -3430,7 +3430,7 @@ class CanvasRenderer {
             this._applyGradientOverlay(panel, layer);
         }
 
-        // Panel borders — per-layer width, drawn INSIDE the panel.
+        // Panel borders, per-layer width, drawn INSIDE the panel.
         if (layer.show_panel_borders) {
             const bw = Math.max(1, Number(layer.panel_border_width) || 2);
             this.ctx.strokeStyle = this.getLayerBorderColor(layer, 'cabinet-id');
@@ -3458,7 +3458,7 @@ class CanvasRenderer {
         this.ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         this.ctx.fillRect(panel.x, panel.y, panel.width, panel.height);
         
-        // Panel borders — per-layer width, drawn INSIDE the panel.
+        // Panel borders, per-layer width, drawn INSIDE the panel.
         if (layer.show_panel_borders) {
             const bw = Math.max(1, Number(layer.panel_border_width) || 2);
             this.ctx.strokeStyle = this.getLayerBorderColor(layer, 'data-flow');
@@ -3878,7 +3878,7 @@ class CanvasRenderer {
         const drawCircuitLabel = (panelStart, panelNext, circuitNum) => {
             const label = window.app ? window.app.getPowerCircuitLabel(layer, circuitNum) : `S1-${circuitNum}`;
             // v0.8.7.4: render at the user's labelSize directly (no
-            // fit-to-panel cap — that was overriding the size slider).
+            // fit-to-panel cap, that was overriding the size slider).
             // Circle grows to fit text width so labels never get clipped.
             // If the label would overflow the screen edge, shift the
             // CENTER inward so the label stays fully inside the screen
@@ -4625,7 +4625,7 @@ class CanvasRenderer {
         // v0.8.7.7.2: the offset actually *applied* to the screen name after
         // the out-of-bounds clamp below. The center/info label group must use
         // this same value (not the raw stored offset) so it never diverges
-        // from the name — otherwise a name that snapped back to center leaves
+        // from the name, otherwise a name that snapped back to center leaves
         // the size/info bar flung off-bounds where it gets clipped away.
         let _appliedNameOffsetX = 0;
         let _appliedNameOffsetY = 0;
@@ -4746,8 +4746,8 @@ class CanvasRenderer {
             // the label visually stayed put. That corrupt value persisted in
             // saved files and made the label feel unmovable on the next drag.
             // Writing the post-clamp value back here self-corrects those
-            // offsets on the very next render — including right after a file
-            // load — so re-dragging always starts from where the label
+            // offsets on the very next render, including right after a file
+            // load, so re-dragging always starts from where the label
             // actually sits. Skipped while THIS layer's name is being dragged
             // (so we don't fight the live gesture) and in export.
             const _isDraggingThisName = this.isDraggingScreenName
@@ -4986,7 +4986,7 @@ class CanvasRenderer {
         const selection = window.app.powerCustomSelection || new Set();
         if (selection.size === 0) return;
 
-        // v0.8.7.2.1: same fix as renderCustomSelectionOverlay — apply the
+        // v0.8.7.2.1: same fix as renderCustomSelectionOverlay, apply the
         // layer's canvas workspace + perspective mirror + per-layer show
         // offset so drag-select highlights land on the panels they're
         // targeting.
@@ -5006,7 +5006,7 @@ class CanvasRenderer {
      * in the same coord frame as the layer they're badging (selection
      * overlays, active port/circuit badges, etc.). Applies the layer's
      * canvas workspace translate, the canvas's Front/Back mirror around
-     * its right edge, and the per-layer Show Look offset — exactly the
+     * its right edge, and the per-layer Show Look offset, exactly the
      * stack the main render loop wraps a layer in.
      */
     _withOverlayLayerTransform(layer, fn) {
@@ -5151,7 +5151,7 @@ class CanvasRenderer {
         this.ctx.save();
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         // v0.8.7.2: badge size is purely proportional to canvas screen
-        // width — no minimum clamp, since at extreme zoom-out the canvas
+        // width, no minimum clamp, since at extreme zoom-out the canvas
         // itself shrinks faster than the badge would. Caller skips the
         // badge entirely when canvasScreenW falls below the
         // "too small to label" threshold.

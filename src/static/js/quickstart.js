@@ -1,5 +1,5 @@
 /*
- * quickstart.js — first-run guided tour / quick-start guide.
+ * quickstart.js: first-run guided tour / quick-start guide.
  * Auto-shows on first launch, walks through the app step by step, is skippable
  * at any time, and offers a "Don't show on startup" checkbox. Reopen anytime
  * from Help -> Quick Start Guide. Fully self-contained + offline (no CDN).
@@ -14,7 +14,7 @@
     var STEPS = [
         {
             title: 'Welcome to LED Raster Designer',
-            body: 'Design LED walls, plan data &amp; power, and export production maps for your processor. Here’s a quick tour — you can skip it any time.',
+            body: 'Design LED walls, plan data &amp; power, and export production maps for your processor. Here’s a quick tour, and you can skip it at any time.',
             center: true
         },
         {
@@ -26,7 +26,7 @@
         {
             target: 'canvas',
             title: 'Your wall',
-            body: 'Your wall renders here on the <b>Pixel Map</b> — each square is one cabinet. Scroll to zoom, <b>Space</b>+drag to pan, and <b>Fit</b> to recenter.',
+            body: 'Your wall renders here on the <b>Pixel Map</b>, where each square is one cabinet. Scroll to zoom, <b>Space</b>+drag to pan, and <b>Fit</b> to recenter.',
             place: 'top'
         },
         {
@@ -44,7 +44,7 @@
         {
             target: '#btn-export',
             title: 'Export',
-            body: 'When it looks right, click <b>Export</b> to save production maps — PNG, PSD, or Resolume XML — for your processor.',
+            body: 'When it looks right, click <b>Export</b> to save production maps (PNG, PSD, or Resolume XML) for your processor.',
             place: 'bottom'
         },
         {

@@ -1,28 +1,28 @@
 /* ──────────────────────────────────────────────────────────────────────
-   LED Raster Designer — "Studio" theme
+   LED Raster Designer, "Studio" theme
    Desktop, docked-panel language: beveled neutral-gray surfaces,
    titled panels, system UI type, a swappable identity accent (default red),
-   chunky tactile controls. Pure cosmetic override layer (loaded last) —
+   chunky tactile controls. Pure cosmetic override layer (loaded last) -
    remove this <link> (and theme.js) to revert.
 
    The accent is driven by --ps-accent* variables so it can be re-themed at
-   runtime from Preferences (see theme.js). No webfonts / no CDN — system
+   runtime from Preferences (see theme.js). No webfonts / no CDN, system
    fonts only, so it holds up offline over the LAN.
    ────────────────────────────────────────────────────────────────────── */
 :root {
   --ps-canvas:#1b1b1b;
   --ps-panel:#2e2e2e;
   --ps-panel-2:#262626;
-  --ps-tile:#3c3c3c;          /* raised rows/cards — clearly above panel */
+  --ps-tile:#3c3c3c;          /* raised rows/cards, clearly above panel */
   --ps-tile-hi:#454545;
   --ps-titlebar:#3d3d3d;
   --ps-control:#404040;
   --ps-control-hi:#545454;
-  --ps-inset:#1c1c1c;          /* recessed fields — clearly below panel */
+  --ps-inset:#1c1c1c;          /* recessed fields, clearly below panel */
   --ps-dark:#131313;
-  --ps-text:#f0f0f0;           /* primary — brighter */
-  --ps-dim:#c0c0c0;            /* secondary — much brighter for legibility */
-  --ps-faint:#969696;          /* tertiary — brighter */
+  --ps-text:#f0f0f0;           /* primary, brighter */
+  --ps-dim:#c0c0c0;            /* secondary, much brighter for legibility */
+  --ps-faint:#969696;          /* tertiary, brighter */
   /* accent (themeable at runtime) */
   --ps-accent:#e22330;
   --ps-accent-hi:#ef3340;
@@ -179,7 +179,7 @@ input[type="radio"] { accent-color:var(--ps-accent) !important; }
 /* active canvas: subtle white inner outline (since color no longer signals active) */
 .canvas-group.active .canvas-group-header {
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 2px rgba(255,255,255,0.5) !important; }
-/* the little color dot is redundant now — the whole header carries the color */
+/* the little color dot is redundant now, the whole header carries the color */
 .canvas-color-swatch { display:none !important; }
 
 /* ---- workspace ---- */
@@ -249,7 +249,7 @@ input[type="radio"] { accent-color:var(--ps-accent) !important; }
 .prefs-grid > div, .prefs-group, .export-views {
   background:var(--ps-panel-2) !important; border:1px solid var(--ps-dark) !important; border-radius:4px !important; }
 /* fields stay recessed + bright text so they read against the lifted blocks */
-/* text fields / selects in modals get the recessed inset look — but NOT
+/* text fields / selects in modals get the recessed inset look, but NOT
    checkboxes/radios, which carry their own checked fill (see checkbox rules) */
 #preferences-modal input:not([type="checkbox"]):not([type="radio"]),
 #preferences-modal select,

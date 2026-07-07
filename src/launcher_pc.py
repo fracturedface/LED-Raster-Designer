@@ -80,7 +80,7 @@ def get_display_url(settings):
 
 
 def create_tray_icon_image():
-    """LED Raster Designer mark — a small LED cabinet of pixels."""
+    """LED Raster Designer mark, a small LED cabinet of pixels."""
     from PIL import Image, ImageDraw
 
     S = 64

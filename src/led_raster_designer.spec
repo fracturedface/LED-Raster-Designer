@@ -99,6 +99,6 @@ if IS_MAC:
             'CFBundleShortVersionString': '0.9.3',
             'CFBundleVersion': '0.9.3',
             'NSHighResolutionCapable': True,
-            'LSUIElement': True,  # Menu bar only — no Dock icon
+            'LSUIElement': True,  # Menu bar only, no Dock icon
         },
     )

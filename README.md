@@ -12,7 +12,7 @@ Design LED cabinet layouts, plan the real-world stage layout, configure data flo
 1. **[Download the latest Mac release](../../releases/latest)** (a `.dmg` file)
 2. Open the `.dmg` and **drag LED Raster Designer onto the Applications folder** shown in the window
 3. Open **LED Raster Designer** from your Applications folder (or Launchpad)
-4. When macOS asks, **allow it to access devices on your Local Network** — this is required so other devices (and your own browser) can reach the app
+4. When macOS asks, **allow it to access devices on your Local Network**, this is required so other devices (and your own browser) can reach the app
 5. Your browser opens automatically, start designing
 6. Look for the 💡 in your menu bar to reopen the browser or quit
 
@@ -38,10 +38,10 @@ Other devices on your local network can use the app by going to `http://[your-ip
 
 A clean, desktop-style "Studio" interface: titled docked panels, beveled neutral-gray surfaces, a system typeface, and a red accent. The app icon and toolbar carry the new logo.
 
-- **Accent color** — choose the interface accent in **Preferences → Appearance** (red, blue, green, amber, purple, teal). It applies app-wide and is remembered.
-- **Resizable side panels** — drag the inner edge of either sidebar to make it wider or narrower; each side's width is remembered. The ‹ / › chevrons still collapse a sidebar entirely.
-- **One-click color picker** — clicking any color control opens the picker directly: a built-in color wheel on Windows, the native OS picker on macOS.
-- **Per-canvas color** — each canvas's Screens header is tinted with that canvas's identity color, so canvases are easy to tell apart at a glance.
+- **Accent color**, choose the interface accent in **Preferences → Appearance** (red, blue, green, amber, purple, teal). It applies app-wide and is remembered.
+- **Resizable side panels**, drag the inner edge of either sidebar to make it wider or narrower; each side's width is remembered. The ‹ / › chevrons still collapse a sidebar entirely.
+- **One-click color picker**, clicking any color control opens the picker directly: a built-in color wheel on Windows, the native OS picker on macOS.
+- **Per-canvas color**, each canvas's Screens header is tinted with that canvas's identity color, so canvases are easy to tell apart at a glance.
 
 ### Multi-Canvas (new in v0.8)
 
@@ -165,7 +165,7 @@ Half-tiles count as **0.5 panel** for data/port math and **0.65 panel** for powe
 - Default raster size, grid colors, flow patterns, and line widths
 - Default processor, bit depth, frame rate, voltage, and amperage
 - Default panel size (mm) and weight unit (kg / lb)
-- Default label / screen-name font size — the screen name now uses this same size on every tab (Pixel Map, Cabinet ID, Data, Power), so it stays consistent
+- Default label / screen-name font size, the screen name now uses this same size on every tab (Pixel Map, Cabinet ID, Data, Power), so it stays consistent
 - **Appearance**: pick the interface accent color
 - Settings persist across sessions
 
@@ -215,7 +215,7 @@ beyond. The version string is kept in sync across `README.md`, `src/VERSION.txt`
 `src/templates/index.html`, and `src/led_raster_designer.spec`.
 
 Every **public** release is git-tagged `vX.Y.Z` and gets release notes drawn from
-the matching `src/VERSION.txt` entry — never the auto-generated PR list alone, so
+the matching `src/VERSION.txt` entry, never the auto-generated PR list alone, so
 the GitHub Releases page reads consistently. Internal test builds are produced via
 the workflow's manual dispatch and are **not** tagged, so the public release
 history has no gaps.
