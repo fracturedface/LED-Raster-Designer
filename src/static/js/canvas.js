@@ -229,10 +229,14 @@ class CanvasRenderer {
      * in the tech's view).
      */
     _fillText(text, x, y, maxWidth) {
-        if (this._mirror) {
+        // v0.9.3: on Data/Power a rotated screen keeps its text upright by
+        // counter-rotating each label about its anchor.
+        const upright = this._keepTextUpright && this._activeRotationRad;
+        if (this._mirror || upright) {
             this.ctx.save();
             this.ctx.translate(x, y);
-            this.ctx.scale(-1, 1);
+            if (upright) this.ctx.rotate(-this._activeRotationRad);
+            if (this._mirror) this.ctx.scale(-1, 1);
             if (maxWidth !== undefined) this.ctx.fillText(text, 0, 0, maxWidth);
             else this.ctx.fillText(text, 0, 0);
             this.ctx.restore();
@@ -243,10 +247,12 @@ class CanvasRenderer {
     }
 
     _strokeText(text, x, y, maxWidth) {
-        if (this._mirror) {
+        const upright = this._keepTextUpright && this._activeRotationRad;
+        if (this._mirror || upright) {
             this.ctx.save();
             this.ctx.translate(x, y);
-            this.ctx.scale(-1, 1);
+            if (upright) this.ctx.rotate(-this._activeRotationRad);
+            if (this._mirror) this.ctx.scale(-1, 1);
             if (maxWidth !== undefined) this.ctx.strokeText(text, 0, 0, maxWidth);
             else this.ctx.strokeText(text, 0, 0);
             this.ctx.restore();
@@ -282,7 +288,9 @@ class CanvasRenderer {
     // v0.9.3: the screen's rotation for the CURRENT view — 0/90/180/270, only in
     // Pixel Map / Cabinet ID (other views never rotate).
     _layerRotationDeg(layer) {
-        if (this.viewMode !== 'pixel-map' && this.viewMode !== 'cabinet-id') return 0;
+        // v0.9.3: rotation applies to every screen view (Pixel Map, Cabinet ID,
+        // Show Look, Data, Power). On Data/Power the panels/arrows rotate but the
+        // text labels are kept upright — see _fillText / _keepTextUpright.
         return ((((Number(layer && layer.rotation) || 0) % 360) + 360) % 360);
     }
 
@@ -2611,6 +2619,10 @@ class CanvasRenderer {
                         this.ctx.rect(-dx, -dy, this.rasterWidth, this.rasterHeight);
                         this.ctx.clip();
                         this._layerRotating = true;
+                        // On Data / Power the panels and arrows rotate but text
+                        // labels are kept upright (counter-rotated in _fillText).
+                        this._activeRotationRad = _rotDeg * Math.PI / 180;
+                        this._keepTextUpright = (this.viewMode === 'data-flow' || this.viewMode === 'power');
                         this._beginLayerRotation(layer);   // rotate in place (own save)
                     }
 
@@ -2651,6 +2663,8 @@ class CanvasRenderer {
                     if (_rotating) {
                         this.ctx.restore();          // pop the rotation transform
                         this._layerRotating = false;
+                        this._keepTextUpright = false;
+                        this._activeRotationRad = 0;
                         this.ctx.restore();          // pop the raster clip
                     }
 
