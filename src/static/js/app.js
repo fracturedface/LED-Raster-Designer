@@ -10303,6 +10303,9 @@ class LEDRasterApp {
                     if (snapCb) snapCb.checked = window.canvasRenderer.magneticSnap;
                 }
                 break;
+            case 'quick-start':
+                if (window.QuickStart) window.QuickStart.start();
+                break;
             case 'keyboard-shortcuts':
                 this.openShortcutsModal();
                 break;
