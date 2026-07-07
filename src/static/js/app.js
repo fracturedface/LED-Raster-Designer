@@ -172,7 +172,7 @@ function setupColorPickerWithHex(pickerId, hexId, onChangeCallback) {
     // The visible control is always the native <input type="color">, on every
     // platform. On Windows, color_picker.js intercepts clicks on it and shows
     // the custom macOS-style picker; on macOS the OS picker opens. This is the
-    // single color-picker path — there is no separate swatch/popover anymore.
+    // single color-picker path, there is no separate swatch/popover anymore.
     const setColor = (val, isFinal = false) => {
         const normalized = normalizeHex(val);
         if (!normalized) return;
@@ -1102,7 +1102,7 @@ class LEDRasterApp {
             // Capture BOTH the Pixel Map raster and the Show Look raster
             // explicitly (not the view-dependent getter) so a stale connect-time
             // echo can't revert the Show Look raster while leaving Pixel Map's
-            // intact — the asymmetry that left Show Look at 1080p.
+            // intact, the asymmetry that left Show Look at 1080p.
             const preserveRaster = this._initialLoadComplete;
             const prevRasterW = preserveRaster ? window.canvasRenderer.pixelRasterWidth : null;
             const prevRasterH = preserveRaster ? window.canvasRenderer.pixelRasterHeight : null;
@@ -1117,7 +1117,7 @@ class LEDRasterApp {
             }
 
             // On reconnect, restore the raster size we had before the server
-            // overwrote it with its default — both the Pixel Map raster and the
+            // overwrote it with its default, both the Pixel Map raster and the
             // Show Look raster, so neither reverts.
             if (preserveRaster && prevRasterW && prevRasterH) {
                 this.project.raster_width = prevRasterW;
@@ -2579,7 +2579,7 @@ class LEDRasterApp {
         }
         // v0.8.5.2: project-wide Show Look reset. Resets EVERY layer's
         // showOffset to its offset_x/y, clears every show_canvas_id, and
-        // re-links every canvas's show_raster_* to its raster_* — one
+        // re-links every canvas's show_raster_* to its raster_*, one
         // click puts the entire Show Look (and Data + Power, which render
         // at the show layout) back to mirroring Pixel Map.
         const showResetAllBtn = document.getElementById('show-look-reset-all');
@@ -3198,7 +3198,7 @@ class LEDRasterApp {
             customModeToggle.addEventListener('change', () => {
                 if (!this.currentLayer) return;
                 // v0.8.2 Re-entrancy guard: when the change event re-fires
-                // mid-flight (browser quirk on some platforms — observed on
+                // mid-flight (browser quirk on some platforms, observed on
                 // mac WKWebView clicking the toggle once produced two change
                 // events 367ms apart), the second invocation immediately
                 // flips the state back so the user's single click ended up
@@ -3728,7 +3728,7 @@ class LEDRasterApp {
         if (powerCustomToggle) {
             powerCustomToggle.addEventListener('change', () => {
                 if (!this.currentLayer) return;
-                // v0.8.2: re-entrancy guard — single click was producing two
+                // v0.8.2: re-entrancy guard, single click was producing two
                 // change events 367ms apart, with the second flipping the
                 // state back to the opposite of what the user wanted. See
                 // matching guard in customModeToggle handler above.
@@ -6351,7 +6351,7 @@ class LEDRasterApp {
         const list = isUser ? this._userGradientPresets() : this._builtinGradientPresets();
         const p = list.find(x => x.name === name);
         if (!p) return;
-        // Built-in presets are just color sets — apply ONLY the stops and keep
+        // Built-in presets are just color sets, apply ONLY the stops and keep
         // the current type/scope/opacity/blend/radial setup (so a radial stays
         // radial, etc.). User presets carry the full look they were saved with.
         const patch = {
@@ -8329,7 +8329,7 @@ class LEDRasterApp {
         // On Windows the visible element is a separate ".../-swatch" div (the
         // native input is hidden), and its background is otherwise only set
         // while editing. Refresh it here so selecting a layer always shows
-        // THAT layer's colors — otherwise the two screens' swatches look
+        // THAT layer's colors, otherwise the two screens' swatches look
         // swapped. Harmless on macOS where the swatch is hidden.
         const color1Swatch = document.getElementById('color1-picker-swatch');
         const color2Swatch = document.getElementById('color2-picker-swatch');
@@ -8752,7 +8752,7 @@ class LEDRasterApp {
         // v0.8.7.5: per-canvas Name inputs in the export modal are
         // prefilled with the canvas's stored name and the user can edit
         // them in place (same pattern as the view-suffix inputs). The
-        // value is filename-only — the canvas's stored name in the
+        // value is filename-only, the canvas's stored name in the
         // sidebar / project is untouched. Empty falls back to canvas.name.
         const nameByCid = {};
         document.querySelectorAll('.export-canvas-name-override').forEach(inp => {
@@ -8948,7 +8948,7 @@ class LEDRasterApp {
             // v0.8.7.5: col-1 of the row holds checkbox + swatch + an
             // editable canvas-name input (replacing the previous static
             // name span). Editing the input changes the canvas segment
-            // in the exported filename only — the canvas's stored name
+            // in the exported filename only, the canvas's stored name
             // in the sidebar / project file is untouched. Using a div
             // (not a label) so clicking the input doesn't toggle the
             // checkbox.
@@ -8987,7 +8987,7 @@ class LEDRasterApp {
             // v0.8.6: per-canvas perspective overrides for Data + Power
             // exports. Default to whatever the canvas currently has.
             // These dropdowns set/restore the canvas's perspective during
-            // export only — they don't persist back to the project.
+            // export only, they don't persist back to the project.
             const persp = document.createElement('div');
             persp.style.cssText = 'display:flex;gap:8px;margin-left:22px;font-size:11px;color:#aaa;align-items:center;';
             const mkSel = (kind, current) => {
@@ -9094,7 +9094,7 @@ class LEDRasterApp {
         });
         // v0.8.7.5: per-canvas Name inputs from the export modal. Each is
         // prefilled with the canvas's stored name and the user can edit
-        // in place. Filename-only — never written back to the canvas
+        // in place. Filename-only, never written back to the canvas
         // object. Empty entries fall back to canvas.name below.
         const nameOverridesByCid = {};
         document.querySelectorAll('.export-canvas-name-override').forEach(inp => {
@@ -9180,7 +9180,7 @@ class LEDRasterApp {
                     // (workspace_x, workspace_y) lands at (0, 0) in the
                     // export canvas. Legacy: pan to 0,0.
                     // v0.8.5.3 fix: Show Look / Data / Power views render
-                    // each canvas at its show_workspace_x/y (when set) —
+                    // each canvas at its show_workspace_x/y (when set) -
                     // the export pan must match or the captured PNG comes
                     // out shifted and missing layers that live at
                     // negative-relative show positions.
@@ -9269,13 +9269,13 @@ class LEDRasterApp {
 
         // v0.8.7: notify the user if any pass had to clamp the requested
         // PSD scale to fit PSD's 30000×30000 dimension limit. We don't
-        // block — we just report the actual scale used so the file lands
+        // block, we just report the actual scale used so the file lands
         // and the user knows.
         if (scaleClampedAnywhere) {
             const usedScales = [...new Set(renderedItems.map(i => i.scale))].sort((a, b) => a - b);
             const status = document.getElementById('status-message');
             if (status) {
-                status.textContent = `PSD scale reduced (max ${usedScales[usedScales.length - 1]}x) — PSD format max is 30000px`;
+                status.textContent = `PSD scale reduced (max ${usedScales[usedScales.length - 1]}x), PSD format max is 30000px`;
                 setTimeout(() => { if (status.textContent.startsWith('PSD scale')) status.textContent = 'Ready'; }, 6000);
             }
             sendClientLog && sendClientLog('export_psd_scale_clamped', {
@@ -9826,7 +9826,7 @@ class LEDRasterApp {
                 this.applyPreferencesToDefaultLayerIfMatch(false);
                 this.saveClientSideProperties();
                 // v0.8.8.x: font change is project-wide and affects every
-                // on-canvas label — repaint so the new font shows immediately.
+                // on-canvas label, repaint so the new font shows immediately.
                 if (window.canvasRenderer) window.canvasRenderer.render();
                 modal.style.display = 'none';
             });
@@ -10302,6 +10302,12 @@ class LEDRasterApp {
                     const snapCb = document.getElementById('magnetic-snap');
                     if (snapCb) snapCb.checked = window.canvasRenderer.magneticSnap;
                 }
+                break;
+            case 'quick-start':
+                if (window.QuickStart) window.QuickStart.start();
+                break;
+            case 'advanced-guide':
+                if (window.QuickStart) window.QuickStart.startAdvanced();
                 break;
             case 'keyboard-shortcuts':
                 this.openShortcutsModal();
@@ -11224,7 +11230,7 @@ class LEDRasterApp {
         // backup input). Also tighten the list's own padding to claw
         // back another ~8px for the inputs. Negative margins break the
         // list out of the panel-content's 12px L+R padding so the
-        // inputs can extend the full sidebar interior — claws back
+        // inputs can extend the full sidebar interior, claws back
         // another 24px (12 on each side).
         list.style.gridTemplateColumns = '1fr';
         list.style.padding = '4px';
@@ -11244,7 +11250,7 @@ class LEDRasterApp {
             const row = document.createElement('div');
             row.style.display = 'grid';
             // v0.8.7.3: compact "1" / "2" number column instead of the
-            // full "Port N" text — saves ~40px in the narrow 260px
+            // full "Port N" text, saves ~40px in the narrow 260px
             // sidebar so both inputs get more width. Row stretches to
             // fill its container with no right-side gap.
             row.style.gridTemplateColumns = '18px 14px 1fr 1fr';
@@ -12218,7 +12224,7 @@ class LEDRasterApp {
                             <button class="layer-btn layer-move-up" data-layer-id="${layer.id}" title="Move up within canvas">▲</button>
                             <button class="layer-btn layer-move-down" data-layer-id="${layer.id}" title="Move down within canvas">▼</button>
                         </div>
-                        <button class="layer-btn layer-visibility-btn ${layer.visible === false ? 'is-hidden' : ''}" onclick="app.toggleLayerVisibility(${layer.id})" title="${layer.visible === false ? 'Hidden — click to show' : 'Visible — click to hide'}">
+                        <button class="layer-btn layer-visibility-btn ${layer.visible === false ? 'is-hidden' : ''}" onclick="app.toggleLayerVisibility(${layer.id})" title="${layer.visible === false ? 'Hidden, click to show' : 'Visible, click to hide'}">
                             ${layer.visible === false ? '🚫' : '👁'}
                         </button>
                     </div>
@@ -12993,7 +12999,7 @@ class LEDRasterApp {
                 // v0.8.7: previously did `this.project = data` here, which
                 // wiped client-side-only properties (screenNameOffsetX/Y
                 // per view, etc.) every time the user activated a different
-                // canvas — visible as the screen-name label snapping back
+                // canvas, visible as the screen-name label snapping back
                 // to its previous spot the moment you clicked away after
                 // dragging it. The PUT only changes active_canvas_id; just
                 // sync that one field instead of clobbering the whole
@@ -13875,7 +13881,7 @@ class LEDRasterApp {
                         // cabinet_width / cabinet_height / columns / rows /
                         // etc., and the next "Update Properties" round-trip
                         // reads those stale values out of the inputs and
-                        // writes them onto the surviving layer — clobbering
+                        // writes them onto the surviving layer, clobbering
                         // its actual panel dimensions while the on-canvas
                         // panels stay sized correctly (because the panel
                         // geometry is already baked into layer.panels).

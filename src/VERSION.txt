@@ -1,6 +1,19 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.9.4 - July 6, 2026
+----------------------------
+- FEATURE: Built-in guided tours.
+  - Quick Start Guide: shows automatically the first time you open the app,
+    with a short spotlight walkthrough of the main areas. Skip at any time,
+    or check "Don't show on startup" to turn off auto-launch. Reopen it from
+    Help -> Quick Start Guide.
+  - Advanced Guide: a full, optional step-by-step walkthrough of the whole
+    app, including the five views, per-panel editing, multi-canvas, data and
+    power planning, snap, and export. Offered at the end of the Quick Start,
+    and available any time from Help -> Advanced Guide.
+- Both guides are fully offline and self-contained (no internet needed).
+
 v0.9.3 - July 6, 2026
 ----------------------------
 - FEATURE: Rotate a screen 90/180/270 (Screen Info -> Rotation). The screen
@@ -29,7 +42,7 @@ v0.9.2 - July 6, 2026
 v0.9.1 - July 2, 2026
 ----------------------------
 - FEATURE: Transparent fill. A "Transparent (no fill)" checkbox in the
-  Colors panel renders a screen's cabinets see-through — only the borders
+  Colors panel renders a screen's cabinets see-through, only the borders
   and labels draw, no checkerboard/palette/gradient fill. Pairs with the
   Export dialog's Transparent Background option for overlays. Saved per
   screen with the project.
@@ -63,7 +76,7 @@ LOGO
   (.app / .exe / installer).
 
 SIDEBARS
-- FEATURE: Resizable side panels — drag the inner edge of either sidebar
+- FEATURE: Resizable side panels, drag the inner edge of either sidebar
   to widen or narrow it; the width persists per side. Works alongside the
   existing collapse toggle.
 - Denser Screens/layer cards so more layers fit without scrolling.
@@ -72,7 +85,7 @@ COLOR
 - Canvas group headers now take on the canvas's own identity color across
   the whole header (the small color dot is removed); the active canvas is
   marked with a white outline.
-- Clicking any color control opens the picker directly — the custom color
+- Clicking any color control opens the picker directly, the custom color
   wheel on Windows, the native OS picker on macOS.
 
 FIXES
@@ -139,14 +152,14 @@ Custom color picker for Windows (macOS-style).
   the Info field under Labels.
 - FIX: A new project's Show Look raster now matches the Preferences
   raster size (e.g. 4K), instead of defaulting to 1080p.
-- FIX: macOS .dmg install window now displays correctly — the
+- FIX: macOS .dmg install window now displays correctly, the
   background is sized to the window with a proper Retina (hi-dpi) TIFF,
   so the "drag to Applications" art is no longer cropped/zoomed.
 - FIX: Network access regression. socket.io is now bundled and served
   by the app instead of loaded from a CDN, so devices reaching the app
   over the LAN no longer need internet. Previously, if the client's
   browser couldn't load the CDN, the whole app failed to initialize
-  (blank — no screens, no interactions). Boot is also now resilient to
+  (blank, no screens, no interactions). Boot is also now resilient to
   any socket failure so the project and controls always load.
 
 v0.8.9.0 - June 25, 2026
@@ -156,8 +169,8 @@ Project fonts, per-layer border width, and a proper macOS installer.
 - FEATURE: Project font. Choose a font for all on-canvas text
   (screen names, Show Look labels, totals, etc.) in Preferences.
   The picker lists the fonts actually installed on your computer
-  (Mac or PC) — enumerated by the app, so no fonts need to be
-  bundled and it works in any browser — with a few recommended
+  (Mac or PC), enumerated by the app, so no fonts need to be
+  bundled and it works in any browser, with a few recommended
   quick-picks at the top.
 - FEATURE: Adjustable panel border width. Each screen layer now has
   a border thickness in pixels (1-20), settable per Border type
@@ -194,9 +207,9 @@ Gradients + multi-color cabinet palettes (standard).
     own; saved presets are per-browser. Built-in presets re-color the
     current gradient only (they keep your type/radial/opacity/blend);
     your own saved presets restore their full settings.
-- FEATURE: Multi-color cabinet palette. Pattern modes — Checkerboard
+- FEATURE: Multi-color cabinet palette. Pattern modes, Checkerboard
   (default, unchanged), Diagonal wave, Cycle/sweep, By row, By
-  column — distribute an N-color palette across cabinets. Existing
+  column, distribute an N-color palette across cabinets. Existing
   screens stay on the 2-color checkerboard until changed.
 - All new gradient/palette settings persist with the project and the
   live server round-trip; they bulk-apply across a multi-selection.
@@ -226,12 +239,12 @@ Screen-name labels: self-healing offsets + Show Look support.
   behind an overlapping layer required hiding that layer first.
   With the old snap-to-center clamp, dragging past the edge let
   the *stored* offset balloon far past the panel (e.g. -1200 on
-  an 840px-tall screen) while the label stayed put — a corrupt
+  an 840px-tall screen) while the label stayed put, a corrupt
   value that persisted in saved files and made the label feel
   unmovable on the next drag. The renderer now HEALS the stored
   offset back to the clamped value every frame (except during the
   live drag), so runaway/corrupt offsets self-correct on the next
-  render — including right after opening an affected project — and
+  render, including right after opening an affected project, and
   re-dragging always starts from where the label actually sits.
 - FEATURE: the click-to-drag screen-name label (and its edge
   clamp + size/info bar tracking) now works on Show Look too, so
@@ -250,7 +263,7 @@ Dragged screen-name labels keep their size/info bar on Pixel Map.
   that it crossed the layer's edge, the name snapped all the way
   back to center while the size / "Columns × Rows • Cabinets…"
   info bar kept the raw (now huge) offset and got clipped off the
-  panel — so the screen looked like it was "missing info" and the
+  panel, so the screen looked like it was "missing info" and the
   name couldn't be nudged. This bit any frame whose name was
   dragged up to sit above an overlapping window layer (ON SR
   Frame, Center Frame, ON SL Frame, etc.).
@@ -280,7 +293,7 @@ Hidden layers are now properly out-of-bounds for editing.
   hangs around briefly it can't fire a drag. (And the cache is
   cleared on hide.)
 - UX: Hidden layers in the right-sidebar layer list now carry a
-  much louder visual indicator — red diagonal-stripe overlay, a
+  much louder visual indicator, red diagonal-stripe overlay, a
   red "HIDDEN" badge in the info line, strikethrough on the layer
   name, a red-tinted visibility button showing 🚫 instead of 👁,
   and the name field + reorder arrows are pointer-locked so the
@@ -292,7 +305,7 @@ Screen-name labels are now grabbable on every tab.
 
 - FEATURE: Click directly on a screen's name label (the white
   box) and drag to reposition. Works on Pixel Map, Cabinet ID,
-  Data Flow, and Power — no Shift modifier required. The label
+  Data Flow, and Power, no Shift modifier required. The label
   rect is hit-tested in workspace coords so it lines up across
   multi-canvas layouts, Back-perspective canvases, and Show Look
   offsets. Plain Shift+drag still moves the whole layer on Pixel
@@ -321,7 +334,7 @@ Sidebar refresh after deleting a layer.
   correctly (panel geometry is already baked into layer.panels).
   Repro: add a screen from a small-panel preset (e.g. VN 8.3 with
   60x120 cabinets), delete the default Brompton screen (192x384
-  cabinets), then edit the surviving screen's column count — its
+  cabinets), then edit the surviving screen's column count, its
   cabinet field silently flipped to 192x384.
   Fix: deleteCurrentLayer now refreshes the layer-property inputs
   via loadLayerToInputs() after the post-delete currentLayer
@@ -334,7 +347,7 @@ Per-canvas filename override in the export modal.
 - FEATURE: Each canvas row in the export dialog now has a "Name"
   text input next to the perspective dropdowns. Typing a value
   there overrides the canvas's project name in the exported
-  filename only — the canvas's stored name (sidebar / project
+  filename only, the canvas's stored name (sidebar / project
   file) is untouched, so the override is a per-export
   customization rather than a permanent rename. Placeholder shows
   the canvas's current project name so it's clear what's being
@@ -351,7 +364,7 @@ Export filename naming convention.
   segments as project_view_canvas (was project - canvas - view with
   spaced hyphens). Alphabetical sort in the export folder now groups
   files by view: all Pixel Maps cluster, then all Data Maps, then
-  all Power Maps, etc. — far easier to hand a tech a folder of 20+
+  all Power Maps, etc., far easier to hand a tech a folder of 20+
   exports. Internal spaces in user-typed project / canvas / view
   names are preserved.
   - Single-canvas:  "MyProject_Pixel Map.psd"
@@ -364,7 +377,7 @@ v0.8.7.3 - May 11, 2026
 Three follow-up fixes after v0.8.7.1 preview testing.
 
 - FIX: Screen-name labels (and every other client-side-only layer
-  field — label sizes, power voltage/amperage, custom port paths,
+  field, label sizes, power voltage/amperage, custom port paths,
   power circuit colors, etc.) reverted to their pre-drag value any
   time a canvas-level mutation went through the server: perspective
   toggle, canvas rename, canvas visibility, canvas resize, etc.
@@ -401,7 +414,7 @@ Three follow-up fixes after v0.8.7.1 preview testing.
   file's root-level raster mirror reflected the Show Look raster
   (because the user last saved on a Show Look tab), this clobbered
   the canvas's actual pixel raster with the show value. Now
-  skipped entirely for multi-canvas files — the per-canvas raster
+  skipped entirely for multi-canvas files, the per-canvas raster
   on each canvas object is the source of truth and is restored
   intact via syncRasterFromProject().
 
@@ -420,7 +433,7 @@ Polish pass on label readability and the port/circuit override editor.
   getting clipped. The user-set label size is rendered as-is (slider
   works freely up to its 200px max), the circle grows with text width
   so labels are never clipped by the circle, and the only constraint
-  is the screen's outer edge — when a label would extend past it, the
+  is the screen's outer edge, when a label would extend past it, the
   label slides inward so it stays fully on the screen.
 - UI: Port / Circuit override editor uses the full sidebar width.
   Replaced the wide "Port N" / "Circuit N" text with a compact bold
@@ -434,7 +447,7 @@ v0.8.7 - May 5, 2026
 - FEATURE: PSD export Resolution Scale option (1x / 2x / 4x / 8x).
   When chosen, the PSD is rendered at scale × native raster resolution.
   Vector content (panels, labels, arrows, text) renders crisp at the
-  higher size — no upscaling artifacts when zooming in or printing
+  higher size, no upscaling artifacts when zooming in or printing
   large in standard image editors. Image layers will sample up from their source
   resolution, so they look softer if the source is lower res.
   PSD layer metadata (offsets / widths / heights) is scaled to match
@@ -529,7 +542,7 @@ v0.8.6.1 - May 5, 2026
   Pixel Map canvas membership (`canvas_id`), even on Show Look / Data /
   Power. So after shift+dragging a layer to a different canvas in
   Show Look, the canvas correctly redrew under the new canvas's outline
-  but the sidebar still showed it under the old canvas — making it look
+  but the sidebar still showed it under the old canvas, making it look
   like the move didn't take. Now the sidebar groups by the layer's
   view-effective canvas (`show_canvas_id || canvas_id` in Show Look,
   `canvas_id` in Pixel Map), and re-renders on tab switch so it always
@@ -544,14 +557,14 @@ v0.8.6.1 - May 5, 2026
 v0.8.6 - May 5, 2026
 ----------------------------
 - FEATURE: Per-canvas wiring perspective. Front / Back perspective is now
-  truly independent per canvas in Data Flow and Power views — c1 can show
+  truly independent per canvas in Data Flow and Power views, c1 can show
   Front while c2 shows Back at the same time on screen. Previously the
   perspective field was per-canvas in data, but the renderer applied a
   single global mirror to the whole workspace based on the active canvas,
   so toggling Back on one canvas visually flipped them all (or none).
 - FEATURE: Per-canvas perspective overrides in the Export dialog. Each
   canvas row in the Canvases section now has Data: Front/Back and
-  Power: Front/Back dropdowns. Set them per canvas before export — the
+  Power: Front/Back dropdowns. Set them per canvas before export, the
   values are applied just for the export pass and then restored.
   Defaults to whatever the canvas currently shows on screen.
 - CHANGE: BACK VIEW badge anchors to each mirrored canvas's top-right
@@ -633,7 +646,7 @@ v0.8.5 - May 4, 2026
   now has its own independent canvas membership per layer, separate from
   Pixel Map / Cabinet ID. New `show_canvas_id` field per layer, defaults
   to null (= mirror canvas_id). Cross-canvas drag in Show Look sets it
-  WITHOUT touching canvas_id, offset_x/y, or panel geometry — so a screen
+  WITHOUT touching canvas_id, offset_x/y, or panel geometry, so a screen
   you drag from canvas 2 into canvas 1 in Show Look is in canvas 1 for
   Show Look / Data / Power but stays in canvas 2 for Pixel Map / Cabinet
   ID. Cross-canvas drag in Pixel Map keeps the existing behavior of

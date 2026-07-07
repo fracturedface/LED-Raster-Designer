@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────────────
-   LRD custom color picker — a faithful replica of the macOS Color popover.
+   LRD custom color picker, a faithful replica of the macOS Color popover.
    Shown on Windows (where the native picker differs); macOS keeps its own.
    Phase 1: the compact swatch popover + "Show Colors…".
    ────────────────────────────────────────────────────────────────────── */
@@ -92,7 +92,7 @@
     z-index: 1;
 }
 
-/* "Show Colors…" button — matches the rounded macOS push button */
+/* "Show Colors…" button, matches the rounded macOS push button */
 .lrd-cp-show {
     display: block;
     width: 100%;
@@ -141,7 +141,7 @@
 .lrd-cp-hex-input:focus { outline: 1.5px solid #2f80ff; outline-offset: -0.5px; }
 
 /* ──────────────────────────────────────────────────────────────────────
-   The full Colors window (opened by "Show Colors…") — replica of the
+   The full Colors window (opened by "Show Colors…"), replica of the
    macOS NSColorPanel. Phase 2: window chrome + the Sliders tab.
    ────────────────────────────────────────────────────────────────────── */
 .lrd-cw-window {

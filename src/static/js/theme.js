@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────────────
-   LED Raster Designer — "Studio" theme enhancer (cosmetic only)
+   LED Raster Designer, "Studio" theme enhancer (cosmetic only)
    1. Swappable accent: applies the saved accent on load and exposes an
       accent picker injected into the Preferences dialog. Persisted in
       localStorage. Drives the --ps-accent* CSS variables.
@@ -114,7 +114,7 @@
 })();
 
 /* ──────────────────────────────────────────────────────────────────────
-   Resizable sidebars — drag the inner edge of either sidebar to widen or
+   Resizable sidebars, drag the inner edge of either sidebar to widen or
    narrow it. Width persists per side in localStorage and is clamped so it
    can't swallow the canvas. Coexists with the existing collapse toggle.
    ────────────────────────────────────────────────────────────────────── */

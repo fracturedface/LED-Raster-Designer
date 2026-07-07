@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────────────
-   LRD Color Picker — a replica of the macOS Color popover for Windows.
+   LRD Color Picker, a replica of the macOS Color popover for Windows.
 
    On macOS the native <input type="color"> already opens the native OS
    picker, so we leave it alone. On Windows the native control opens the
@@ -32,8 +32,8 @@
         if (/[?&]colorpicker=force/.test(location.search)) return true;
         try { if (localStorage.getItem('lrd_force_color_picker') === '1') return true; } catch (e) { /* ignore */ }
         // Enable on every non-macOS client (Windows, Linux, ChromeOS). macOS
-        // clients keep their native picker. Gating on the client — not the
-        // server's window.LRD_PLATFORM — is what makes the LAN case work: a
+        // clients keep their native picker. Gating on the client, not the
+        // server's window.LRD_PLATFORM, is what makes the LAN case work: a
         // Windows browser on a Mac-hosted server now correctly gets the picker.
         return !isClientMac();
     }
@@ -111,7 +111,7 @@
     function rgbStr(o) { return 'rgb(' + o.r + ',' + o.g + ',' + o.b + ')'; }
 
     // ── Palettes ───────────────────────────────────────────────────────
-    // Top vivid row — the saturated basics.
+    // Top vivid row, the saturated basics.
     const VIVID = [
         '#FF2D2D', '#FF9500', '#FFF500', '#4CD916', '#00E5E0', '#0A60FF',
         '#9B30FF', '#C42BD6', '#AA7942', '#FFFFFF', '#919191', '#000000'
@@ -216,7 +216,7 @@
             bar.className = 'lrd-cw-titlebar';
             const lights = document.createElement('div');
             lights.className = 'lrd-cw-lights';
-            // Single red close button (desktop style — no mac minimize/maximize).
+            // Single red close button (desktop style, no mac minimize/maximize).
             ['red'].forEach(c => {
                 const d = document.createElement('span');
                 d.className = 'lrd-cw-light ' + c;
@@ -600,7 +600,7 @@
                 if (!items.length) {
                     const e = document.createElement('div');
                     e.className = 'lrd-cw-placeholder'; e.style.padding = '20px 8px';
-                    e.textContent = 'No colors yet — click + to add the current color.';
+                    e.textContent = 'No colors yet, click + to add the current color.';
                     list.appendChild(e); return;
                 }
                 items.forEach(it => {
