@@ -30,6 +30,10 @@ presets/
 # Claude Code local config
 .claude/
 
+# Internal notes and materials (local only, never in the public repo)
+docs/
+guides/
+
 # OS files
 .DS_Store
 Thumbs.db

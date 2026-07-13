@@ -6,7 +6,6 @@ with settings for network interface, port, start minimized, and run at login.
 import sys
 import os
 import threading
-import webbrowser
 import time
 
 # Resolve paths for PyInstaller bundle
@@ -22,7 +21,7 @@ if BASE_DIR not in sys.path:
 
 from launcher_settings import (
     load_settings, save_settings, get_network_interfaces, set_run_at_login,
-    get_ssl_context, regenerate_ssl_certs
+    get_ssl_context, regenerate_ssl_certs, get_available_browsers, open_url
 )
 
 # Global reference to socketio for server restart
@@ -61,7 +60,6 @@ def start_flask_server(settings):
 
 def restart_flask_server(settings):
     """Stop the current server and start a new one with updated settings."""
-    global _socketio
     if _socketio:
         _socketio.stop()
         # Give it a moment to release the port
@@ -128,7 +126,7 @@ def run_tray(settings):
     icon_ref = [None]
 
     def open_browser(icon, item):
-        webbrowser.open(get_display_url(settings))
+        open_url(get_display_url(settings), settings)
 
     def quit_app(icon, item):
         icon.stop()
@@ -179,6 +177,28 @@ def run_tray(settings):
     def https_checked(item):
         return settings.get('https_enabled', False)
 
+    # Browser selection submenu
+    def make_browser_callback(key):
+        def callback(icon, item):
+            settings['browser'] = key
+            save_settings(settings)
+            if icon_ref[0]:
+                icon_ref[0].menu = build_menu()
+                icon_ref[0].update_menu()
+        return callback
+
+    def browser_checked(key):
+        def check(item):
+            return settings.get('browser', 'default') == key
+        return check
+
+    def toggle_open_on_launch(icon, item):
+        settings['open_browser_on_launch'] = not settings.get('open_browser_on_launch', False)
+        save_settings(settings)
+
+    def open_on_launch_checked(item):
+        return settings.get('open_browser_on_launch', False)
+
     def build_menu():
         interfaces = get_network_interfaces()
         iface_items = []
@@ -186,6 +206,11 @@ def run_tray(settings):
             iface_items.append(
                 MenuItem(label, make_iface_callback(ip), checked=iface_checked(ip))
             )
+
+        browser_items = [
+            MenuItem(label, make_browser_callback(key), checked=browser_checked(key), radio=True)
+            for key, label in get_available_browsers()
+        ]
 
         host = settings.get('interface', '127.0.0.1')
         port = settings.get('port', 8050)
@@ -203,6 +228,9 @@ def run_tray(settings):
 
         return Menu(
             MenuItem('Open in Browser', open_browser, default=True),
+            MenuItem('Open With', Menu(*browser_items)),
+            MenuItem('Open Browser on Launch', toggle_open_on_launch,
+                     checked=open_on_launch_checked),
             Menu.SEPARATOR,
             MenuItem('Network', Menu(*iface_items)),
             MenuItem(f'Port: {port}', None, enabled=False),
@@ -238,8 +266,9 @@ def main():
     # Give the server a moment to start
     time.sleep(1.5)
 
-    # Auto-open browser on launch
-    webbrowser.open(get_display_url(settings))
+    # Auto-open the GUI in the chosen browser, unless the user turned that off
+    if settings.get('open_browser_on_launch', False):
+        open_url(get_display_url(settings), settings)
 
     # Run the system tray (blocks main thread)
     run_tray(settings)

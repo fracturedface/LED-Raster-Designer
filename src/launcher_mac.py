@@ -6,7 +6,6 @@ with settings for network interface, port, HTTPS, start minimized, and run at lo
 import sys
 import os
 import threading
-import webbrowser
 import time
 
 # Resolve paths for PyInstaller bundle
@@ -22,7 +21,7 @@ if BASE_DIR not in sys.path:
 
 from launcher_settings import (
     load_settings, save_settings, get_network_interfaces, set_run_at_login,
-    get_ssl_context, regenerate_ssl_certs
+    get_ssl_context, regenerate_ssl_certs, get_available_browsers, open_url
 )
 
 # Global reference to socketio for server restart
@@ -61,7 +60,6 @@ def start_flask_server(settings):
 
 def restart_flask_server(settings):
     """Stop the current server and start a new one with updated settings."""
-    global _socketio
     if _socketio:
         _socketio.stop()
         # Give it a moment to release the port
@@ -152,6 +150,18 @@ def run_menubar(settings):
             status_item = rumps.MenuItem(f'Running on {protocol}://{display_host}:{port}')
             status_item.set_callback(None)
 
+            # Browser selection submenu
+            current_browser = self.settings.get('browser', 'default')
+            browser_menu = rumps.MenuItem('Open With')
+            for key, label in get_available_browsers():
+                b_item = rumps.MenuItem(label, callback=self._make_browser_callback(key))
+                b_item.state = 1 if key == current_browser else 0
+                browser_menu.add(b_item)
+
+            open_on_launch = rumps.MenuItem('Open Browser on Launch',
+                                            callback=self._toggle_open_on_launch)
+            open_on_launch.state = 1 if self.settings.get('open_browser_on_launch', False) else 0
+
             # Toggles
             run_login = rumps.MenuItem('Run at Login', callback=self._toggle_run_at_login)
             run_login.state = 1 if self.settings.get('run_at_login', False) else 0
@@ -159,6 +169,8 @@ def run_menubar(settings):
             self.menu.clear()
             self.menu = [
                 rumps.MenuItem('Open in Browser', callback=self._open_browser),
+                browser_menu,
+                open_on_launch,
                 None,  # separator
                 network_menu,
                 port_item,
@@ -172,7 +184,22 @@ def run_menubar(settings):
             ]
 
         def _open_browser(self, _):
-            webbrowser.open(get_display_url(self.settings))
+            open_url(get_display_url(self.settings), self.settings)
+
+        def _make_browser_callback(self, key):
+            def callback(sender):
+                self.settings['browser'] = key
+                save_settings(self.settings)
+                for item in sender.parent.values():
+                    if isinstance(item, rumps.MenuItem):
+                        item.state = 0
+                sender.state = 1
+            return callback
+
+        def _toggle_open_on_launch(self, sender):
+            sender.state = not sender.state
+            self.settings['open_browser_on_launch'] = bool(sender.state)
+            save_settings(self.settings)
 
         def _make_iface_callback(self, ip):
             """Create a callback for a specific interface selection."""
@@ -292,8 +319,9 @@ def main():
     # Give the server a moment to start
     time.sleep(1.0)
 
-    # Auto-open browser on launch
-    webbrowser.open(get_display_url(settings))
+    # Auto-open the GUI in the chosen browser, unless the user turned that off
+    if settings.get('open_browser_on_launch', False):
+        open_url(get_display_url(settings), settings)
 
     # Run the menu bar app (blocks on main thread, required by macOS)
     run_menubar(settings)

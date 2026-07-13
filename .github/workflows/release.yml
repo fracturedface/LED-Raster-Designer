@@ -44,7 +44,7 @@ jobs:
   build-macos:
     name: Build macOS
     needs: test
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
 
@@ -64,6 +64,26 @@ jobs:
           source .venv/bin/activate
           cd src && python -m PyInstaller led_raster_designer.spec --noconfirm
           cp -R "dist/LED Raster Designer.app" "../LED Raster Designer.app"
+
+      - name: Smoke test frozen app
+        run: |
+          # Launch the actual frozen binary in server-only mode and probe it.
+          # Validates the bundle end-to-end: entry point, blueprints, datas.
+          export LRD_NO_WINDOW=1 LRD_SMOKE_PORT=18750
+          "./LED Raster Designer.app/Contents/MacOS/LED Raster Designer" &
+          APP_PID=$!
+          for i in $(seq 1 30); do
+            sleep 1
+            if curl -sf http://127.0.0.1:18750/api/version > /dev/null; then break; fi
+            if ! kill -0 $APP_PID 2>/dev/null; then
+              echo "frozen app exited early"; exit 1
+            fi
+          done
+          curl -sf http://127.0.0.1:18750/api/version
+          curl -sf -o /dev/null -w "GUI: %{http_code}\n" http://127.0.0.1:18750/
+          curl -sf http://127.0.0.1:18750/api/project > /dev/null && echo "project API: ok"
+          curl -sf http://127.0.0.1:18750/api/panel-catalog/info > /dev/null && echo "catalog API: ok"
+          kill $APP_PID
 
       # ── Code Signing (requires Apple Developer cert in secrets) ──
       - name: Import code signing certificate
@@ -114,7 +134,7 @@ jobs:
             VERSION="${{ github.event.inputs.version }}"
           fi
           DMG="led_raster_designer_v${VERSION}_macos.dmg"
-          brew install create-dmg
+          HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install create-dmg
           # The DMG window is 600x400 points. Finder does NOT scale a plain
           # background image, so it must match the window size (a 1200x800 PNG
           # would show only its top-left quarter). For Retina crispness we fold
@@ -192,6 +212,30 @@ jobs:
           cd src
           python -m PyInstaller led_raster_designer.spec --noconfirm
           Copy-Item -Recurse -Force "dist\LED Raster Designer" "..\LED Raster Designer App"
+
+      - name: Smoke test frozen app
+        run: |
+          # Launch the actual frozen binary in server-only mode and probe it.
+          # Validates the bundle end-to-end: entry point, blueprints, datas.
+          $env:LRD_NO_WINDOW = "1"
+          $env:LRD_SMOKE_PORT = "18750"
+          $proc = Start-Process -FilePath "LED Raster Designer App\LED Raster Designer.exe" -PassThru
+          $ok = $false
+          foreach ($i in 1..30) {
+            Start-Sleep -Seconds 1
+            try {
+              $resp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:18750/api/version" -TimeoutSec 2
+              if ($resp.StatusCode -eq 200) { $ok = $true; break }
+            } catch { }
+            if ($proc.HasExited) { Write-Error "frozen app exited early"; exit 1 }
+          }
+          if (-not $ok) { Write-Error "server never came up"; Stop-Process -Id $proc.Id -Force; exit 1 }
+          Write-Host "version: $((Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:18750/api/version').Content)"
+          $gui = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:18750/"
+          Write-Host "GUI: $($gui.StatusCode)"
+          Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:18750/api/project" | Out-Null; Write-Host "project API: ok"
+          Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:18750/api/panel-catalog/info" | Out-Null; Write-Host "catalog API: ok"
+          Stop-Process -Id $proc.Id -Force
 
       # ── Code Signing (requires certificate in secrets) ──
       - name: Sign executable

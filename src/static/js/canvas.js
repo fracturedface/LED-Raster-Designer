@@ -3558,9 +3558,6 @@ class CanvasRenderer {
             // Clear any capacity error when in custom mode
             layer._capacityError = null;
         }
-        // Calculate circle radius based on label size
-        const circleRadius = labelSize * 1.2;
-        
         // Random color palette for multi-port support
         const randomColors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 

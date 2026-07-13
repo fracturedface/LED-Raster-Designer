@@ -1,6 +1,42 @@
 LED RASTER DESIGNER - VERSION HISTORY
 =====================================
 
+v0.10.0 - July 13, 2026
+----------------------------
+- FEATURE: New launcher window. Opening the app now shows a control window
+  (in the app's studio style) with the server status and address, network
+  interface, port, browser selection, open-on-launch, run-at-login, and
+  start-minimized settings, plus Launch GUI / Hide / Quit. Hide (or closing
+  the window) tucks it away while the server keeps running; the menu-bar
+  icon (macOS) or system tray icon (Windows) brings it back and offers
+  Show Launcher / Open in Browser / Quit, just like before.
+- SECURITY: Remote clients now always save to their own machine. Exports and
+  saves from another device on the network download in that device's browser;
+  the host's native save dialogs and file writes are only reachable from the
+  host itself (remote requests are refused server-side).
+- FIX: Redo now restores an added screen. Previously the history snapshot
+  for "Add Layer" was taken before the add finished, so Undo then Redo
+  silently lost the new screen. (Found by the new automated browser tests.)
+- FIX: The Notes and Help panels (bottom right) remember whether you left
+  them expanded, so a page refresh no longer collapses them.
+- FIX: Dropdowns (Processing, Bit Depth, Frame Rate, and everywhere else)
+  show a chevron again so they read as dropdowns, not text boxes.
+- FIX: Dragging a screen card in the Screens panel shows the red insertion
+  line again (it had been hidden by the v0.9.0 restyle).
+- FIX: On macOS the launcher no longer leaves a dead icon in the Dock; the
+  app lives only in the menu bar, like before.
+- FIX: The canvas retries its initial auto-fit while the window lays out,
+  so a slow first paint can't leave a blank canvas at 0% zoom.
+- INTERNAL: Major code modularization (no behavior change). The backend
+  app.py is split into 10 route blueprints; the frontend app.js is split
+  into ES modules (app-core plus 8 feature modules and shared helpers).
+- FEATURE: Choose how the GUI opens.
+  - You can now pick which browser the GUI opens in (System default, or any
+    installed browser like Chrome, Firefox, Edge, Brave, or Safari) from the
+    tray / menu-bar menu under "Open With".
+  - New "Open Browser on Launch" toggle: opt in to open the GUI automatically
+    at startup. Off by default; use Launch GUI or the menu when you want it.
+
 v0.9.4 - July 6, 2026
 ----------------------------
 - FEATURE: Built-in guided tours.
